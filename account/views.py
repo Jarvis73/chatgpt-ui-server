@@ -1,12 +1,19 @@
+import hashlib
+
 from rest_framework.response import Response
 from rest_framework import status
+from dj_rest_auth.app_settings import api_settings
 from dj_rest_auth.registration.views import RegisterView
+from dj_rest_auth.utils import jwt_encode
 from chat.models import Setting
-from allauth.account import app_settings as allauth_account_settings
+from allauth.account import signals, app_settings as allauth_account_settings
+from allauth.account.utils import perform_login
+from rest_framework.exceptions import ValidationError
 
 
 class RegistrationView(RegisterView):
     def create(self, request, *args, **kwargs):
+        # 判断是否开启注册功能
         try:
             open_registration = Setting.objects.get(name='open_registration').value == 'True'
         except Setting.DoesNotExist:
@@ -15,8 +22,27 @@ class RegistrationView(RegisterView):
         if open_registration is False:
             return Response({'detail': 'Registration is not yet open.'}, status=status.HTTP_403_FORBIDDEN)
 
+        # 判断邀请码是否正确
+        try:
+            open_code = Setting.objects.get(name='open_code').value == 'True'
+        except Setting.DoesNotExist:
+            open_code = True
+        if open_code is True:
+            # 使用 sha256 来验证邀请码, 以防邀请码泄露
+            if 'code' not in request.data or \
+                    hashlib.sha256(request.data['code'].encode('utf-8')).hexdigest() \
+                    != 'a57640942f45c9ae95803b6236fd18e66e0eb98ed62a90acf6befbc93d7c60f4':
+                return Response({'detail': 'Invalid invitation code.'}, status=status.HTTP_403_FORBIDDEN)
+
+        # 执行注册
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except ValidationError as error:
+            if 'email' in error.detail:
+                return Response({'detail': error.detail['email'][0]}, status=status.HTTP_400_BAD_REQUEST)
+            elif 'password1' in error.detail:
+                return Response({'detail': error.detail['password1'][0]}, status=status.HTTP_400_BAD_REQUEST)
         user = self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         data = self.get_response_data(user)
@@ -33,3 +59,38 @@ class RegistrationView(RegisterView):
             response = Response(status=status.HTTP_204_NO_CONTENT, headers=headers)
 
         return response
+
+    def perform_create(self, serializer):
+        user = serializer.save(self.request)
+        if allauth_account_settings.EMAIL_VERIFICATION != \
+                allauth_account_settings.EmailVerificationMethod.MANDATORY:
+            if api_settings.USE_JWT:
+                self.access_token, self.refresh_token = jwt_encode(user)
+            elif not api_settings.SESSION_LOGIN:
+                # Session authentication isn't active either, so this has to be
+                #  token authentication
+                api_settings.TOKEN_CREATOR(self.token_model, user, serializer)
+
+        complete_signup(
+            self.request._request, user,
+            allauth_account_settings.EMAIL_VERIFICATION,
+            None,
+        )
+        return user
+
+
+def complete_signup(request, user, email_verification, success_url, signal_kwargs=None):
+    if signal_kwargs is None:
+        signal_kwargs = {}
+    signals.user_signed_up.send(
+        sender=user.__class__, request=request, user=user, **signal_kwargs
+    )
+    return perform_login(
+        request,
+        user,
+        email_verification=email_verification,
+        signup=False,
+        redirect_url=success_url,
+        signal_kwargs=signal_kwargs,
+    )
+

@@ -31,6 +31,7 @@ class SettingViewSet(viewsets.ModelViewSet):
             'open_web_search',
             'open_api_key_setting',
             'open_frugal_mode_control',
+            'open_code',
         ]
         return Setting.objects.filter(name__in=available_names)
 
