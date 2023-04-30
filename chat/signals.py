@@ -26,3 +26,6 @@ def load_default_settings(sender, **kwargs):
         if not Setting.objects.filter(name='open_code').exists():
             Setting.objects.create(name='open_code', value='True')
             print('Created setting: open_code')
+        if not Setting.objects.filter(name='code_inventory_quantity').exists():
+            Setting.objects.create(name='code_inventory_quantity', value=10)
+            print('Created setting: code_inventory_quantity')

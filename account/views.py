@@ -22,6 +22,15 @@ class RegistrationView(RegisterView):
         if open_registration is False:
             return Response({'detail': 'Registration is not yet open.'}, status=status.HTTP_403_FORBIDDEN)
 
+        # 获取邀请码余量
+        try:
+            code_inventory_quantity = int(Setting.objects.get(name='code_inventory_quantity').value)
+        except Setting.DoesNotExist:
+            code_inventory_quantity = 0
+
+        if not code_inventory_quantity:
+            return Response({'detail': 'Registration is not yet open.'}, status=status.HTTP_403_FORBIDDEN)
+
         # 判断邀请码是否正确
         try:
             open_code = Setting.objects.get(name='open_code').value == 'True'
@@ -38,12 +47,10 @@ class RegistrationView(RegisterView):
         serializer = self.get_serializer(data=request.data)
         try:
             serializer.is_valid(raise_exception=True)
+            user = self.perform_create(serializer)
         except ValidationError as error:
-            if 'email' in error.detail:
-                return Response({'detail': error.detail['email'][0]}, status=status.HTTP_400_BAD_REQUEST)
-            elif 'password1' in error.detail:
-                return Response({'detail': error.detail['password1'][0]}, status=status.HTTP_400_BAD_REQUEST)
-        user = self.perform_create(serializer)
+            return Response({'detail': list(error.detail.values())[0][0]}, status=status.HTTP_400_BAD_REQUEST)
+
         headers = self.get_success_headers(serializer.data)
         data = self.get_response_data(user)
 
@@ -62,6 +69,16 @@ class RegistrationView(RegisterView):
 
     def perform_create(self, serializer):
         user = serializer.save(self.request)
+
+        # 注册成功, 减少邀请码数量
+        try:
+            code_inventory_quantity = Setting.objects.get(name='code_inventory_quantity')
+            if int(code_inventory_quantity.value) > 0:
+                code_inventory_quantity.value = int(code_inventory_quantity.value) - 1
+                code_inventory_quantity.save()
+        except Setting.DoesNotExist:
+            pass
+
         if allauth_account_settings.EMAIL_VERIFICATION != \
                 allauth_account_settings.EmailVerificationMethod.MANDATORY:
             if api_settings.USE_JWT:
