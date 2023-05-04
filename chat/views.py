@@ -67,7 +67,9 @@ class MessageViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         conversationId = self.request.query_params.get('conversationId')
         if conversationId:
-            queryset = queryset.filter(conversation_id=conversationId).order_by('created_at')
+            queryset = queryset.filter(conversation__user=self.request.user)\
+                .filter(conversation_id=conversationId).order_by('created_at')
+            return queryset
         return queryset
 
 
@@ -135,7 +137,7 @@ def gen_title(request):
         openai_api_key = get_api_key_from_setting()
 
     if openai_api_key is None:
-        api_key = get_api_key()
+        api_key = get_api_key('gpt-3.5-turbo')
         if api_key:
             openai_api_key = api_key.key
         else:
@@ -203,7 +205,7 @@ def conversation(request):
         openai_api_key = get_api_key_from_setting()
 
     if openai_api_key is None:
-        api_key = get_api_key()
+        api_key = get_api_key(model_name)
         if api_key:
             openai_api_key = api_key.key
         else:
@@ -400,9 +402,14 @@ def get_api_key_from_setting():
     return None
 
 
-def get_api_key():
-    return ApiKey.objects.filter(is_enabled=True).order_by('token_used').first()
+def get_api_key(model_name):
+    try:
+        api_key = ApiKey.objects.filter(
+            is_enabled=True, remark__iexact=model_name).order_by('token_used').first()
+    except ApiKey.DoesNotExist as error:
+        api_key = None
 
+    return api_key
 
 def num_tokens_from_text(text, model="gpt-3.5-turbo-0301"):
     try:
