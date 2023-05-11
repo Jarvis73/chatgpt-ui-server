@@ -213,7 +213,7 @@ def conversation(request):
                 {
                     'error': 'There is no available API key'
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_403_FORBIDDEN
             )
 
     model = get_current_model(model_name, request_max_response_tokens)
