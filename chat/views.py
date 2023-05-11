@@ -402,7 +402,7 @@ def get_api_key_from_setting():
     return None
 
 
-def get_api_key(model_name):
+def get_api_key(model_name='gpt-3.5-turbo'):
     try:
         api_key = ApiKey.objects.filter(
             is_enabled=True, remark__iexact=model_name).order_by('token_used').first()
