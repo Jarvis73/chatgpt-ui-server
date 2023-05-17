@@ -130,11 +130,11 @@ def gen_title(request):
     prompt = request.data.get('prompt')
     conversation_obj = Conversation.objects.get(id=conversation_id)
     message = Message.objects.filter(conversation_id=conversation_id).order_by('created_at').first()
-    openai_api_key = request.data.get('openaiApiKey')
+    openai_api_key = request.data.get('openaiApiKey') or None
     api_key = None
 
-    if openai_api_key is None:
-        openai_api_key = get_api_key_from_setting()
+    # if openai_api_key is None:
+    #     openai_api_key = get_api_key_from_setting()
 
     if openai_api_key is None:
         api_key = get_api_key('gpt-3.5-turbo')
@@ -196,13 +196,12 @@ def conversation(request):
     frequency_penalty = request.data.get('frequency_penalty', 0)
     presence_penalty = request.data.get('presence_penalty', 0)
     web_search_params = request.data.get('web_search')
-    openai_api_key = request.data.get('openaiApiKey')
+    openai_api_key = request.data.get('openaiApiKey') or None
     frugal_mode = request.data.get('frugalMode', False)
-
     api_key = None
 
-    if openai_api_key is None:
-        openai_api_key = get_api_key_from_setting()
+    # if openai_api_key is None:
+    #     openai_api_key = get_api_key_from_setting()
 
     if openai_api_key is None:
         api_key = get_api_key(model_name)
