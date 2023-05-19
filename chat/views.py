@@ -149,16 +149,17 @@ def gen_title(request):
             )
 
     if prompt is None:
-        prompt = 'Generate a short title for the following content, no more than 10 words. \n\nContent: '
+        prompt = 'Generate a short title for the following content, no more than 10 words.'
 
     messages = [
-        {"role": "user", "content": prompt + message.message},
+        {"role": "system", "content": prompt},
+        {"role": "user", "content": message.message},
     ]
 
     my_openai = get_openai(openai_api_key)
     try:
         openai_response = my_openai.ChatCompletion.create(
-            model='gpt-3.5-turbo-0301',
+            model='gpt-3.5-turbo',
             messages=messages,
             max_tokens=256,
             temperature=0.5,
