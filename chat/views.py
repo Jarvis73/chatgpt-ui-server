@@ -199,6 +199,7 @@ def conversation(request):
     web_search_params = request.data.get('web_search')
     openai_api_key = request.data.get('openaiApiKey') or None
     frugal_mode = request.data.get('frugalMode', False)
+    few_shot_messages = request.data.get('fewShotMask', [])
     api_key = None
 
     # if openai_api_key is None:
@@ -219,7 +220,8 @@ def conversation(request):
     model = get_current_model(model_name, request_max_response_tokens)
 
     try:
-        messages = build_messages(model, conversation_id, message, web_search_params, frugal_mode)
+        check_few_shot_messages(few_shot_messages)
+        messages = build_messages(model, conversation_id, message, few_shot_messages, web_search_params, frugal_mode)
 
         if settings.DEBUG:
             print('messages:', messages)
@@ -309,6 +311,20 @@ def conversation(request):
     return response
 
 
+def check_few_shot_messages(messages):
+    if not isinstance(messages, list):
+        raise TypeError(f'`messages` must be a list, got {type(messages)}.')
+    for item in messages:
+        if not isinstance(item, dict):
+            raise TypeError(f'items in `messages` must be dictionary, got {type(item)}')
+        if 'role' not in item:
+            raise ValueError(f'items in `messages` must contains a key "role"')
+        if 'content' not in item:
+            raise ValueError(f'items in `messages` must contains a key "content"')
+        if len(item.keys()) > 2:
+            raise ValueError(f'items in `messages` must only contains two keys "role" and "content", '
+                             f'got {list(item.keys())}')
+
 def create_message(user, conversation_id, message, is_bot=False, messages='', tokens=0, api_key=None):
     message_obj = Message(
         conversation_id=conversation_id,
@@ -334,7 +350,13 @@ def increase_token_usage(user, tokens, api_key=None):
         api_key.save()
 
 
-def build_messages(model, conversation_id, new_message_content, web_search_params, frugal_mode = False):
+def build_messages(
+        model,
+        conversation_id,
+        new_message_content,
+        few_shot_messages,
+        web_search_params,
+        frugal_mode=False):
     if conversation_id:
         ordered_messages = Message.objects.filter(conversation_id=conversation_id).order_by('created_at')
         ordered_messages_list = list(ordered_messages)
@@ -346,7 +368,8 @@ def build_messages(model, conversation_id, new_message_content, web_search_param
     if frugal_mode:
         ordered_messages_list = ordered_messages_list[-1:]
 
-    system_messages = [{"role": "system", "content": "You are a helpful assistant."}]
+    # Create preset messages
+    system_messages = few_shot_messages or [{"role": "system", "content": "You are a helpful assistant."}]
 
     current_token_count = num_tokens_from_messages(system_messages, model['name'])
 
