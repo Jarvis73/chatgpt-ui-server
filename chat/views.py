@@ -7,7 +7,7 @@ import tiktoken
 
 from provider.models import ApiKey
 from stats.models import TokenUsage
-from .models import Conversation, Message, Setting, Prompt
+from .models import Conversation, Message, Setting, Prompt, Mask
 from django.conf import settings
 from django.http import StreamingHttpResponse
 from django.forms.models import model_to_dict
@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes, action
-from .serializers import ConversationSerializer, MessageSerializer, PromptSerializer, SettingSerializer
+from .serializers import ConversationSerializer, MessageSerializer, PromptSerializer, MaskSerializer, SettingSerializer
 from utils.search_prompt import compile_prompt
 from utils.duckduckgo_search import web_search, SearchRequest
 
@@ -96,6 +96,25 @@ class PromptViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         queryset.delete()
         return Response(status=204)
+
+
+class MaskViewSet(viewsets.ModelViewSet):
+    serializer_class = MaskSerializer
+    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Mask.objects.filter(user=self.request.user).order_by('-created_at')
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.validated_data['user'] = request.user
+
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 MODELS = {

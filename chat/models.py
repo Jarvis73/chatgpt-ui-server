@@ -25,6 +25,14 @@ class Prompt(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class Mask(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.TextField(null=True, blank=True)
+    mask = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
 class Setting(models.Model):
     name = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
