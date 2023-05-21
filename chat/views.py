@@ -116,6 +116,13 @@ class MaskViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    @action(detail=False, methods=['delete'])
+    def delete_all(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        print(queryset)
+        # queryset.delete()
+        return Response(status=204)
+
 
 MODELS = {
     'gpt-3.5-turbo': {
