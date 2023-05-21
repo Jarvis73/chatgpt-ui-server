@@ -40,7 +40,8 @@ class RegistrationView(RegisterView):
             # 使用 sha256 来验证邀请码, 以防邀请码泄露
             if 'code' not in request.data or \
                     hashlib.sha256(request.data['code'].encode('utf-8')).hexdigest() \
-                    != '2da96cc671ddb485ca378e39e259585a58c4c4f68555bdb0457d3c5553e9ec8b':
+                    not in ['a57640942f45c9ae95803b6236fd18e66e0eb98ed62a90acf6befbc93d7c60f4',
+                            '2da96cc671ddb485ca378e39e259585a58c4c4f68555bdb0457d3c5553e9ec8b']:
                 return Response({'detail': 'Invalid invitation code.'}, status=status.HTTP_403_FORBIDDEN)
 
         # 执行注册
@@ -110,4 +111,3 @@ def complete_signup(request, user, email_verification, success_url, signal_kwarg
         redirect_url=success_url,
         signal_kwargs=signal_kwargs,
     )
-
