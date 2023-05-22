@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Create new migration files (when create new Model)
+python manage.py makemigrations
+
+# Apply new migration files to the database
 python manage.py migrate
 
 python manage.py createsuperuser --no-input

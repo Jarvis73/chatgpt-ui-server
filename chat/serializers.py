@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Conversation, Message, Prompt, Setting
+from .models import Conversation, Message, Prompt, Mask, Setting
 
 class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,6 +19,13 @@ class PromptSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prompt
         fields = ['id', 'title', 'prompt', 'created_at', 'updated_at']
+
+
+class MaskSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Mask
+        fields = ['id', 'title', 'avatar', 'mask', 'created_at', 'updated_at']
 
 
 class SettingSerializer(serializers.ModelSerializer):
