@@ -25,7 +25,7 @@ class MaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mask
-        fields = ['id', 'title', 'mask', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'avatar', 'mask', 'created_at', 'updated_at']
 
 
 class SettingSerializer(serializers.ModelSerializer):

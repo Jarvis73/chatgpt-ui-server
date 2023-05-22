@@ -28,6 +28,7 @@ class Prompt(models.Model):
 class Mask(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.TextField(null=True, blank=True)
+    avatar = models.TextField(null=True, blank=True)
     mask = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
