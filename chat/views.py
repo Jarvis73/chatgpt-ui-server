@@ -20,6 +20,8 @@ from .serializers import ConversationSerializer, MessageSerializer, PromptSerial
 from utils.search_prompt import compile_prompt
 from utils.duckduckgo_search import web_search, SearchRequest
 
+running_flag = {}
+
 
 class SettingViewSet(viewsets.ModelViewSet):
     serializer_class = SettingSerializer
@@ -208,11 +210,21 @@ def gen_title(request):
         'title': title
     })
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def stop_conversation(request):
+    # Stop current running conversation
+    running_flag[request.user] = False
+    return Response({})
+
 
 @api_view(['POST'])
 # @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def conversation(request):
+    # Set an is_running flag for responding the stop request
+    running_flag[request.user] = True
+    
     model_name = request.data.get('name')
     message = request.data.get('message')
     conversation_id = request.data.get('conversationId')
@@ -303,15 +315,17 @@ def conversation(request):
         collected_events = []
         completion_text = ''
         # iterate through the stream of events
-        for event in openai_response:
+        for idx, event in enumerate(openai_response):
             collected_events.append(event)  # save the event response
-            # print(event)
             if event['choices'][0]['finish_reason'] is not None:
                 break
             if 'content' in event['choices'][0]['delta']:
                 event_text = event['choices'][0]['delta']['content']
                 completion_text += event_text  # append the text
                 yield sse_pack('message', {'content': event_text})
+            # Check is_running every 10 ticks.
+            if idx % 10 == 0 and not running_flag[request.user]:
+                break
 
         ai_message_token = num_tokens_from_text(completion_text, model['name'])
         ai_message_obj = create_message(
