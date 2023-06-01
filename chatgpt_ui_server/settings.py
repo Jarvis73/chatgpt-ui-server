@@ -187,3 +187,11 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', True) == 'True'
 EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', False) == 'True'
 DEFAULT_FROM_EMAIL = os.getenv('EMAIL_FROM', 'webmaster@localhost')
+
+# Cache
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+        "LOCATION": os.getenv('MEMCACHED', 'memcached:11211'),
+    }
+}

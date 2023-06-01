@@ -11,6 +11,7 @@ from .models import Conversation, Message, Setting, Prompt, Mask
 from django.conf import settings
 from django.http import StreamingHttpResponse
 from django.forms.models import model_to_dict
+from django.core.cache import cache
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -19,8 +20,6 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from .serializers import ConversationSerializer, MessageSerializer, PromptSerializer, MaskSerializer, SettingSerializer
 from utils.search_prompt import compile_prompt
 from utils.duckduckgo_search import web_search, SearchRequest
-
-running_flag = {}
 
 
 class SettingViewSet(viewsets.ModelViewSet):
@@ -214,7 +213,7 @@ def gen_title(request):
 @permission_classes([IsAuthenticated])
 def stop_conversation(request):
     # Stop current running conversation
-    running_flag[request.user] = False
+    cache.set(request.user, 0, 300)
     return Response({})
 
 
@@ -223,7 +222,7 @@ def stop_conversation(request):
 @permission_classes([IsAuthenticated])
 def conversation(request):
     # Set an is_running flag for responding the stop request
-    running_flag[request.user] = True
+    cache.set(request.user, 1, 300)
     
     model_name = request.data.get('name')
     message = request.data.get('message')
@@ -324,7 +323,7 @@ def conversation(request):
                 completion_text += event_text  # append the text
                 yield sse_pack('message', {'content': event_text})
             # Check is_running every 10 ticks.
-            if idx % 10 == 0 and not running_flag[request.user]:
+            if idx % 10 == 0 and cache.get(request.user) == 0:
                 break
 
         ai_message_token = num_tokens_from_text(completion_text, model['name'])
