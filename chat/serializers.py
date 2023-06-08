@@ -4,7 +4,7 @@ from .models import Conversation, Message, Prompt, Mask, Setting
 class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
-        fields = ['id', 'topic', 'created_at']
+        fields = ['id', 'topic', 'mask_title', 'mask_avatar', 'mask', 'created_at']
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:

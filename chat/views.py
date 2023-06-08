@@ -235,6 +235,8 @@ def conversation(request):
     web_search_params = request.data.get('web_search')
     openai_api_key = request.data.get('openaiApiKey') or None
     frugal_mode = request.data.get('frugalMode', False)
+    mask_title = request.data.get('maskTitle', '')
+    mask_avatar = request.data.get('maskAvatar', '')
     few_shot_messages = request.data.get('fewShotMask', [])
     api_key = None
 
@@ -293,9 +295,26 @@ def conversation(request):
         if conversation_id:
             # get the conversation
             conversation_obj = Conversation.objects.get(id=conversation_id)
+            # update mask information
+            modified = False
+            if conversation_obj.mask_title != mask_title:
+                conversation_obj.mask_title = mask_title
+                modified = True
+            if conversation_obj.mask_avatar != mask_avatar:
+                conversation_obj.mask_avatar = mask_avatar
+                modified = True
+            str_few_shot_messages = str(few_shot_messages)
+            if conversation_obj.mask != str_few_shot_messages:
+                conversation_obj.mask = str_few_shot_messages
+                modified = True
+            if modified:
+                conversation_obj.save()
         else:
             # create a new conversation
-            conversation_obj = Conversation(user=request.user)
+            conversation_obj = Conversation(user=request.user,
+                                            mask_title=mask_title,
+                                            mask_avatar=mask_avatar,
+                                            mask=few_shot_messages)
             conversation_obj.save()
 
         # insert a new message

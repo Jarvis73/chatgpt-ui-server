@@ -5,6 +5,9 @@ from django.contrib.auth.models import User
 class Conversation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     topic = models.CharField(max_length=255)
+    mask_title = models.TextField(default='', blank=True)
+    mask_avatar = models.TextField(default='', blank=True)
+    mask = models.TextField(default='')
     created_at = models.DateTimeField(auto_now_add=True)
 
 
