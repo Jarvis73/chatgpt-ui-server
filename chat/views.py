@@ -6,7 +6,7 @@ import datetime
 import tiktoken
 
 from provider.models import ApiKey
-from stats.models import TokenUsage
+from stats.models import TokenUsage, Profile
 from .models import Conversation, Message, Setting, Prompt, Mask
 from django.conf import settings
 from django.http import StreamingHttpResponse
@@ -163,7 +163,7 @@ def gen_title(request):
     #     openai_api_key = get_api_key_from_setting()
 
     if openai_api_key is None:
-        api_key = get_api_key('gpt-3.5-turbo')
+        api_key = get_api_key(request.user, 'gpt-3.5-turbo')
         if api_key:
             openai_api_key = api_key.key
         else:
@@ -244,7 +244,7 @@ def conversation(request):
     #     openai_api_key = get_api_key_from_setting()
 
     if openai_api_key is None:
-        api_key = get_api_key(model_name)
+        api_key = get_api_key(request.user, model_name)
         if api_key:
             openai_api_key = api_key.key
         else:
@@ -482,10 +482,15 @@ def get_api_key_from_setting():
     return None
 
 
-def get_api_key(model_name='gpt-3.5-turbo'):
+def get_api_key(user, model_name='gpt-3.5-turbo'):
     try:
         api_key = ApiKey.objects.filter(
             is_enabled=True, remark__iexact=model_name).order_by('token_used').first()
+        # gpt-4 is only for vip
+        if api_key is not None and api_key.remark.lower() == 'gpt-4':
+            user = Profile.objects.filter(user=user)
+            if not user.exists() or not user.first().vip:
+                api_key = None
     except ApiKey.DoesNotExist as error:
         api_key = None
 

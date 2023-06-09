@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 from rest_framework import exceptions, serializers
+from stats.models import Profile
 
 # Get the UserModel
 UserModel = get_user_model()
@@ -38,3 +41,9 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         model = UserModel
         fields = (*extra_fields,)
         read_only_fields = ('email',)
+
+
+@receiver(post_save, sender=UserModel)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
