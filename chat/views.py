@@ -303,7 +303,7 @@ def conversation(request):
             if conversation_obj.mask_avatar != mask_avatar:
                 conversation_obj.mask_avatar = mask_avatar
                 modified = True
-            str_few_shot_messages = str(few_shot_messages)
+            str_few_shot_messages = json.dumps(few_shot_messages)
             if conversation_obj.mask != str_few_shot_messages:
                 conversation_obj.mask = str_few_shot_messages
                 modified = True
@@ -314,7 +314,7 @@ def conversation(request):
             conversation_obj = Conversation(user=request.user,
                                             mask_title=mask_title,
                                             mask_avatar=mask_avatar,
-                                            mask=few_shot_messages)
+                                            mask=json.dumps(few_shot_messages))
             conversation_obj.save()
 
         # insert a new message
