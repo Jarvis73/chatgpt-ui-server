@@ -68,7 +68,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         conversationId = self.request.query_params.get('conversationId')
         if conversationId:
-            queryset = queryset.filter(conversation__user=self.request.user)\
+            queryset = queryset.filter(conversation__user=self.request.user) \
                 .filter(conversation_id=conversationId).order_by('created_at')
             return queryset
         return queryset
@@ -126,17 +126,39 @@ class MaskViewSet(viewsets.ModelViewSet):
 
 MODELS = {
     'gpt-3.5-turbo': {
-        'name': 'gpt-3.5-turbo',
+        'name': 'gpt-3.5-turbo-0301',
+        'key_name': 'gpt-3.5-turbo-azure',
         'max_tokens': 4096,
         'max_prompt_tokens': 3096,
-        'max_response_tokens': 1000
+        'max_response_tokens': 1000,
+        'azure': True,
+        'kwargs': {
+            'deployment_id': 'gpt35'
+        },
+    },
+    'gpt-3.5-turbo-16k': {
+        'name': 'gpt-3.5-turbo-16k-0613',
+        'key_name': 'gpt-3.5-turbo',
+        'max_tokens': 16384,
+        'max_prompt_tokens': 12384,
+        'max_response_tokens': 4000,
+        'azure': False,
+        'kwargs': {},
     },
     'gpt-4': {
-        'name': 'gpt-4',
+        'name': 'gpt-4-0314',
+        'key_name': 'gpt-4',
         'max_tokens': 8192,
         'max_prompt_tokens': 6196,
-        'max_response_tokens': 2000
+        'max_response_tokens': 2000,
+        'azure': False,
+        'kwargs': {},
     }
+}
+
+MODEL_SET = {
+    '3.5': {'gpt-3.5-turbo-0301', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo-16k-0613'},
+    '4': {'gpt-4-0314', 'gpt-4-0613'}
 }
 
 
@@ -159,11 +181,13 @@ def gen_title(request):
     openai_api_key = request.data.get('openaiApiKey') or None
     api_key = None
 
+    model = MODELS['gpt-3.5-turbo']
+
     # if openai_api_key is None:
     #     openai_api_key = get_api_key_from_setting()
 
     if openai_api_key is None:
-        api_key = get_api_key(request.user, 'gpt-3.5-turbo')
+        api_key = get_api_key(request.user, model['key_name'])
         if api_key:
             openai_api_key = api_key.key
         else:
@@ -182,16 +206,17 @@ def gen_title(request):
         {"role": "user", "content": message.message},
     ]
 
-    my_openai = get_openai(openai_api_key)
+    my_openai = get_openai(model, openai_api_key)
     try:
         openai_response = my_openai.ChatCompletion.create(
-            model='gpt-3.5-turbo',
+            model=model['name'],
             messages=messages,
             max_tokens=256,
             temperature=0.5,
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0,
+            **model['kwargs'],
         )
         completion_text = openai_response['choices'][0]['message']['content']
         title = completion_text.strip().replace('"', '')
@@ -223,7 +248,7 @@ def stop_conversation(request):
 def conversation(request):
     # Set an is_running flag for responding the stop request
     cache.set(request.user, 1, 300)
-    
+
     model_name = request.data.get('name')
     message = request.data.get('message')
     conversation_id = request.data.get('conversationId')
@@ -240,11 +265,13 @@ def conversation(request):
     few_shot_messages = request.data.get('fewShotMask', [])
     api_key = None
 
+    model = get_current_model(model_name, request_max_response_tokens)
+
     # if openai_api_key is None:
     #     openai_api_key = get_api_key_from_setting()
 
     if openai_api_key is None:
-        api_key = get_api_key(request.user, model_name)
+        api_key = get_api_key(request.user, model['key_name'])
         if api_key:
             openai_api_key = api_key.key
         else:
@@ -254,8 +281,6 @@ def conversation(request):
                 },
                 status=status.HTTP_403_FORBIDDEN
             )
-
-    model = get_current_model(model_name, request_max_response_tokens)
 
     try:
         check_few_shot_messages(few_shot_messages)
@@ -273,7 +298,7 @@ def conversation(request):
         )
 
     def stream_content():
-        my_openai = get_openai(openai_api_key)
+        my_openai = get_openai(model, openai_api_key)
         try:
             openai_response = my_openai.ChatCompletion.create(
                 model=model['name'],
@@ -284,10 +309,11 @@ def conversation(request):
                 frequency_penalty=frequency_penalty,
                 presence_penalty=presence_penalty,
                 stream=True,
+                **model['kwargs'],
             )
         except Exception as e:
             yield sse_pack('error', {
-                'error': str(e)
+                'error': 'Internal Server Error!'
             })
             print('openai error', e)
             return
@@ -341,6 +367,10 @@ def conversation(request):
                 event_text = event['choices'][0]['delta']['content']
                 completion_text += event_text  # append the text
                 yield sse_pack('message', {'content': event_text})
+                if model['azure']:
+                    # We slow down the message output when using Azure
+                    # because it is too fast!!!
+                    time.sleep(0.02)
             # Check is_running every 10 ticks.
             if idx % 10 == 0 and cache.get(request.user) == 0:
                 break
@@ -482,10 +512,10 @@ def get_api_key_from_setting():
     return None
 
 
-def get_api_key(user, model_name='gpt-3.5-turbo'):
+def get_api_key(user, key_name='gpt-3.5-turbo'):
     try:
         api_key = ApiKey.objects.filter(
-            is_enabled=True, remark__iexact=model_name).order_by('token_used').first()
+            is_enabled=True, remark__iexact=key_name).order_by('token_used').first()
         # gpt-4 is only for vip
         if api_key is not None and api_key.remark.lower() == 'gpt-4':
             user = Profile.objects.filter(user=user)
@@ -510,10 +540,10 @@ def num_tokens_from_text(text, model="gpt-3.5-turbo-0301"):
         print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
         return num_tokens_from_text(text, model="gpt-4-0314")
 
-    if model not in ["gpt-3.5-turbo-0301", "gpt-4-0314"]:
-        raise NotImplementedError(f"""num_tokens_from_text() is not implemented for model {model}.""")
+    if model in MODEL_SET['3.5'] or MODEL_SET['4']:
+        return len(encoding.encode(text))
 
-    return len(encoding.encode(text))
+    raise NotImplementedError(f"""num_tokens_from_text() is not implemented for model {model}.""")
 
 
 def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
@@ -529,10 +559,10 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
     elif model == "gpt-4":
         print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
         return num_tokens_from_messages(messages, model="gpt-4-0314")
-    elif model == "gpt-3.5-turbo-0301":
+    elif model in MODEL_SET['3.5']:
         tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         tokens_per_name = -1  # if there's a name, the role is omitted
-    elif model == "gpt-4-0314":
+    elif model in MODEL_SET['4']:
         tokens_per_message = 3
         tokens_per_name = 1
     else:
@@ -548,9 +578,18 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
     return num_tokens
 
 
-def get_openai(openai_api_key):
-    openai.api_key = openai_api_key
-    proxy = os.getenv('OPENAI_API_PROXY')
-    if proxy:
-        openai.api_base = proxy
+def get_openai(model, openai_api_key):
+    if model['azure']:
+        openai.api_type = "azure"
+        openai.api_key = openai_api_key
+        api_base = Setting.objects.filter(name='azure_api_base').first()
+        if not api_base:
+            raise ValueError('Missing azure_api_base.')
+        openai.api_base = api_base.value
+        openai.api_version = "2023-03-15-preview"
+    else:
+        openai.api_key = openai_api_key
+        proxy = os.getenv('OPENAI_API_PROXY')
+        if proxy:
+            openai.api_base = proxy
     return openai
