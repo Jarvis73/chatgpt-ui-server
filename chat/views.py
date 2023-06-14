@@ -34,6 +34,7 @@ class SettingViewSet(viewsets.ModelViewSet):
             'open_frugal_mode_control',
             'open_code',
             'code_inventory_quantity',
+            'azure_api_base',
         ]
         return Setting.objects.filter(name__in=available_names)
 
