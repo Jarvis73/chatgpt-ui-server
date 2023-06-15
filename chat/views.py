@@ -589,7 +589,10 @@ def get_openai(model, openai_api_key):
         openai.api_base = api_base.value
         openai.api_version = "2023-03-15-preview"
     else:
+        openai.api_type = "open_ai"
         openai.api_key = openai_api_key
+        openai.api_base = 'https://api.openai.com/v1'
+        openai.api_version = None
         proxy = os.getenv('OPENAI_API_PROXY')
         if proxy:
             openai.api_base = proxy
