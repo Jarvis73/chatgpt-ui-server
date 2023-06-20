@@ -35,6 +35,12 @@ class Mask(models.Model):
     mask = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    shared = models.BooleanField(default=False)
+    
+    def save(self, *args, **kwargs):
+        if self.user.username == 'public':
+            self.shared = True
+        super().save(*args, **kwargs)
 
 
 class Setting(models.Model):

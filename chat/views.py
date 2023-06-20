@@ -12,6 +12,8 @@ from django.conf import settings
 from django.http import StreamingHttpResponse
 from django.forms.models import model_to_dict
 from django.core.cache import cache
+from django.db.models import Q, Case, When, Value, IntegerField
+from django.contrib.auth.models import User
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -107,7 +109,18 @@ class MaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Mask.objects.filter(user=self.request.user).order_by('-created_at')
+        public_user = User.objects.get(username='public')
+        return Mask.objects.filter(
+            Q(user=self.request.user) | Q(user=public_user)
+        ).annotate(
+            is_public=Case(
+                When(user=public_user, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            ),
+        ).order_by(
+            'is_public', '-created_at'
+        )
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
