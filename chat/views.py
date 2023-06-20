@@ -24,6 +24,7 @@ from utils.duckduckgo_search import web_search, SearchRequest
 
 class SettingViewSet(viewsets.ModelViewSet):
     serializer_class = SettingSerializer
+
     # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -156,7 +157,8 @@ MODELS = {
         'kwargs': {},
     },
     'gpt-4': {
-        'name': 'gpt-4-0613',
+        # 'name': 'gpt-4-0613',
+        'name': 'gpt-4',
         'key_name': 'gpt-4',
         'max_tokens': 8192,
         'max_prompt_tokens': 6196,
@@ -168,7 +170,7 @@ MODELS = {
 
 MODEL_SET = {
     '3.5': {'gpt-3.5-turbo-0301', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo-16k-0613'},
-    '4': {'gpt-4-0314', 'gpt-4-0613'}
+    '4': {'gpt-4', 'gpt-4-0314', 'gpt-4-0613'}
 }
 
 
@@ -243,6 +245,7 @@ def gen_title(request):
     return Response({
         'title': title
     })
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -422,6 +425,7 @@ def check_few_shot_messages(messages):
             raise ValueError(f'items in `messages` must only contains two keys "role" and "content", '
                              f'got {list(item.keys())}')
 
+
 def create_message(user, conversation_id, message, is_bot=False, messages='', tokens=0, api_key=None):
     message_obj = Message(
         conversation_id=conversation_id,
@@ -486,7 +490,8 @@ def build_messages(
         role = "assistant" if message['is_bot'] else "user"
         if web_search_params is not None and len(messages) == 0:
             search_results = web_search(SearchRequest(message['message'], ua=web_search_params['ua']), num_results=5)
-            message_content = compile_prompt(search_results, message['message'], default_prompt=web_search_params['default_prompt'])
+            message_content = compile_prompt(search_results, message['message'],
+                                             default_prompt=web_search_params['default_prompt'])
         else:
             message_content = message['message']
         new_message = {"role": role, "content": message_content}
@@ -507,7 +512,7 @@ def build_messages(
 
 def get_current_model(model_name, request_max_response_tokens):
     if model_name is None:
-        model_name ="gpt-3.5-turbo"
+        model_name = "gpt-3.5-turbo"
     model = MODELS[model_name]
     if request_max_response_tokens is not None:
         model['max_response_tokens'] = int(request_max_response_tokens)
@@ -535,6 +540,7 @@ def get_api_key(user, key_name='gpt-3.5-turbo'):
         api_key = None
 
     return api_key
+
 
 def num_tokens_from_text(text, model="gpt-3.5-turbo-0301"):
     try:
@@ -576,7 +582,8 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
         tokens_per_message = 3
         tokens_per_name = 1
     else:
-        raise NotImplementedError(f"""num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
+        raise NotImplementedError(
+            f"""num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
     num_tokens = 0
     for message in messages:
         num_tokens += tokens_per_message
