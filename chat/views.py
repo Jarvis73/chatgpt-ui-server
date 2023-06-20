@@ -157,8 +157,8 @@ MODELS = {
         'kwargs': {},
     },
     'gpt-4': {
-        # 'name': 'gpt-4-0613',
-        'name': 'gpt-4',
+        'name': 'gpt-4-0613',
+        # 'name': 'gpt-4',
         'key_name': 'gpt-4',
         'max_tokens': 8192,
         'max_prompt_tokens': 6196,

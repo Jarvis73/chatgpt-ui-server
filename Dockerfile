@@ -10,7 +10,7 @@ ENV DJANGO_SUPERUSER_EMAIL=admin@example.com
 
 COPY requirements.txt ./
 
-RUN pip install --no-cache-dir -i https://mirrors.cloud.tencent.com/pypi/simple -r requirements.txt
+RUN pip install --no-cache-dir -i https://mirrors.bfsu.edu.cn/pypi/web/simple -r requirements.txt
 
 WORKDIR /app
 
