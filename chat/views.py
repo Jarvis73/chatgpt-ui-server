@@ -54,9 +54,10 @@ class ConversationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        offset = int(self.request.query_params.get('offset', 0))
-        limit = int(self.request.query_params.get('limit', 20))
-        return Conversation.objects.filter(user=self.request.user).order_by('-created_at')[offset:offset + limit]
+        # offset = int(self.request.query_params.get('offset', 0))
+        # limit = int(self.request.query_params.get('limit', 20))
+        return Conversation.objects.filter(user=self.request.user).order_by('-created_at')
+        # [offset:offset + limit]
 
     @action(detail=False, methods=['delete'])
     def delete_all(self, request):
