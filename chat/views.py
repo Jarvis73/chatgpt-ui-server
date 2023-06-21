@@ -116,7 +116,7 @@ class MaskViewSet(viewsets.ModelViewSet):
         shared_name = Setting.objects.filter(name='share_mask_account').first()
         if shared_name and shared_name.value:
             shared_user = User.objects.get(username=shared_name.value)
-            return Mask.objects.filter(
+            results = Mask.objects.filter(
                 Q(user=self.request.user) | Q(user=shared_user)
             ).annotate(
                 is_shared=Case(
@@ -128,7 +128,13 @@ class MaskViewSet(viewsets.ModelViewSet):
                 'is_shared', '-created_at'
             )
         else:
-            return Mask.objects.filter(user=self.request.user).order_by('-created_at')
+            results = Mask.objects.filter(user=self.request.user).order_by('-created_at')
+
+        if self.request.user.username == shared_name.value:
+            # share user don't share (i.e., can edit)
+            for i in range(len(results)):
+                results[i].shared = False
+        return results
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
