@@ -38,6 +38,7 @@ class SettingViewSet(viewsets.ModelViewSet):
             'open_code',
             'code_inventory_quantity',
             'azure_api_base',
+            'share_mask_account',
         ]
         return Setting.objects.filter(name__in=available_names)
 
@@ -53,7 +54,9 @@ class ConversationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Conversation.objects.filter(user=self.request.user).order_by('-created_at')
+        offset = int(self.request.query_params.get('offset', 0))
+        limit = int(self.request.query_params.get('limit', 20))
+        return Conversation.objects.filter(user=self.request.user).order_by('-created_at')[offset:offset + limit]
 
     @action(detail=False, methods=['delete'])
     def delete_all(self, request):
@@ -109,18 +112,22 @@ class MaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        public_user = User.objects.get(username='public')
-        return Mask.objects.filter(
-            Q(user=self.request.user) | Q(user=public_user)
-        ).annotate(
-            is_public=Case(
-                When(user=public_user, then=Value(1)),
-                default=Value(0),
-                output_field=IntegerField(),
-            ),
-        ).order_by(
-            'is_public', '-created_at'
-        )
+        shared_name = Setting.objects.filter(name='share_mask_account').first()
+        if shared_name and shared_name.value:
+            shared_user = User.objects.get(username=shared_name.value)
+            return Mask.objects.filter(
+                Q(user=self.request.user) | Q(user=shared_user)
+            ).annotate(
+                is_shared=Case(
+                    When(user=shared_user, then=Value(1)),
+                    default=Value(0),
+                    output_field=IntegerField(),
+                ),
+            ).order_by(
+                'is_shared', '-created_at'
+            )
+        else:
+            return Mask.objects.filter(user=self.request.user).order_by('-created_at')
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

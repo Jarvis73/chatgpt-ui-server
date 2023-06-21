@@ -9,6 +9,7 @@ class Conversation(models.Model):
     mask_avatar = models.TextField(default='', blank=True)
     mask = models.TextField(default='')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class Message(models.Model):
@@ -38,7 +39,8 @@ class Mask(models.Model):
     shared = models.BooleanField(default=False)
     
     def save(self, *args, **kwargs):
-        if self.user.username == 'public':
+        shared_account = Setting.objects.filter(name='share_mask_account').first()
+        if shared_account and self.user.username == shared_account.value:
             self.shared = True
         super().save(*args, **kwargs)
 

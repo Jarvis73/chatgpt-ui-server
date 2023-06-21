@@ -27,3 +27,6 @@ def load_default_settings(sender, **kwargs):
         if not Setting.objects.filter(name='azure_api_base').exists():
             Setting.objects.create(name='azure_api_base', value='')
             print('Created setting: azure_api_base')
+        if not Setting.objects.filter(name='share_mask_account').exists():
+            Setting.objects.create(name='share_mask_account', value='')
+            print('Created setting: share_mask_account')
