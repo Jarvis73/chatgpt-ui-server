@@ -494,16 +494,15 @@ def build_messages(
     current_time = datetime.datetime.now().strftime('%Y-%m-%d')
     system_prompt = """You are ChatGPT, a large language model trained by OpenAI.
     
-    * Knowledge cutoff: 2021-09
+    Knowledge cutoff: 2021-09
     
-    * Current date: {}
+    Current date: {}
     
-    * Follow the user's instructions carefully. Respond using markdown.
+    Follow the user's instructions carefully. Respond using markdown.
     
-    * Return all the inline math symbols within single $ and standalone formula with in double $. For example, $\pi$.
+    Return all the inline math symbols within single $ and standalone formula within double $. For example, $\pi$.
     """.format(current_time)
     ordered_messages_list.append({'is_bot': False, 'message': new_message_content})
-
     if frugal_mode:
         ordered_messages_list = ordered_messages_list[-1:]
 
