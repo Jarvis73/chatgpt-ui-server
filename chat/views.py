@@ -4,7 +4,7 @@ import openai
 import time
 import datetime
 import tiktoken
-
+import datetime
 from provider.models import ApiKey
 from stats.models import TokenUsage, Profile
 from .models import Conversation, Message, Setting, Prompt, Mask
@@ -490,15 +490,18 @@ def build_messages(
         ordered_messages_list = list(ordered_messages)
     else:
         ordered_messages_list = []
-
+    current_time = datetime.datetime.now().strftime('%Y-%m-%d')
+    system_prompt = """You are ChatGPT, a large language model trained by OpenAI.
+    Knowledge cutoff: 2021-09
+    Current date: {}
+    """.format(current_time)
     ordered_messages_list.append({'is_bot': False, 'message': new_message_content})
 
     if frugal_mode:
         ordered_messages_list = ordered_messages_list[-1:]
 
     # Create preset messages
-    system_messages = few_shot_messages or [{"role": "system", "content": "You are a helpful assistant."}]
-
+    system_messages = few_shot_messages or [{"role": "system", "content": system_prompt}]
     current_token_count = num_tokens_from_messages(system_messages, model['name'])
 
     max_token_count = model['max_prompt_tokens']
