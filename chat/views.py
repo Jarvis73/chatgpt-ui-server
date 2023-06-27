@@ -492,7 +492,7 @@ def build_messages(
     else:
         ordered_messages_list = []
     current_time = datetime.datetime.now().strftime('%Y-%m-%d')
-    system_prompt = """You are ChatGPT, a large language model trained by OpenAI. Style your responses in Markdown.
+    system_prompt = """You are ChatGPT, a large language model trained by OpenAI. Style your responses in Markdown and wrap the math symbols within $.
     
     Knowledge cutoff: 2021-09
     
