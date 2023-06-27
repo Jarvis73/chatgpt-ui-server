@@ -554,7 +554,10 @@ def build_messages(
 def get_current_model(model_name, request_max_response_tokens):
     if model_name is None:
         model_name = "gpt-3.5-turbo"
-    model = MODELS[model_name]
+    try:
+        model = MODELS[model_name]
+    except KeyError:
+        raise NotImplementedError("{} is not implemented".format(model_name))
     if request_max_response_tokens is not None:
         model['max_response_tokens'] = int(request_max_response_tokens)
         model['max_prompt_tokens'] = model['max_tokens'] - model['max_response_tokens']
