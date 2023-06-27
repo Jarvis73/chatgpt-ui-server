@@ -174,6 +174,7 @@ MODELS = {
         'azure': False,
         'kwargs': {},
     },
+
     # 'gpt-3.5-turbo-16k': {
     #     'name': 'gpt-3.5-turbo-16k-0613',
     #     'key_name': 'gpt-3.5-turbo',
