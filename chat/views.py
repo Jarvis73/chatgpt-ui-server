@@ -227,7 +227,7 @@ def gen_title(request):
     #     openai_api_key = get_api_key_from_setting()
 
     if openai_api_key is None:
-        api_key = get_api_key(request.user, model['key_name'])
+        api_key = get_api_key(request.user, model['key_name'], model['name'])
         if api_key:
             openai_api_key = api_key.key
         else:
@@ -312,7 +312,7 @@ def conversation(request):
     #     openai_api_key = get_api_key_from_setting()
 
     if openai_api_key is None:
-        api_key = get_api_key(request.user, model['key_name'])
+        api_key = get_api_key(request.user, model['key_name'], model['name'])
         if api_key:
             openai_api_key = api_key.key
         else:
@@ -570,12 +570,12 @@ def get_api_key_from_setting():
     return None
 
 
-def get_api_key(user, key_name='gpt-3.5-turbo'):
+def get_api_key(user, key_name='gpt-3.5-turbo', model_name=None):
     try:
         api_key = ApiKey.objects.filter(
             is_enabled=True, remark__iexact=key_name).order_by('token_used').first()
         # gpt-4 is only for vip
-        if api_key is not None and api_key.remark.lower() == 'gpt-4':
+        if api_key is not None and ("16k" in model_name or "gpt-4" in model_name):
             user = Profile.objects.filter(user=user)
             if not user.exists() or not user.first().vip:
                 api_key = None
