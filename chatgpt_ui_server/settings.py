@@ -45,6 +45,7 @@ for app_domain in app_domains:
 
 INSTALLED_APPS = [
     'simpleui',
+    'rangefilter',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
