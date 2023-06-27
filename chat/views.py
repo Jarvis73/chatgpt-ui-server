@@ -492,14 +492,20 @@ def build_messages(
     else:
         ordered_messages_list = []
     current_time = datetime.datetime.now().strftime('%Y-%m-%d')
-    system_prompt = """You are ChatGPT, a large language model trained by OpenAI.
+    if "3.5" in model['name']:
+        current_architecture = "GPT-3.5"
+    elif "4" in model['name']:
+        current_architecture = "GPT-4"
+    else:
+        raise NotImplementedError(f"Unknown model name {model['name']}")
+    system_prompt = """You are ChatGPT, a large language model trained by OpenAI, based on the {} architecture.
     
     Knowledge cutoff: 2021-09
     
     Current date: {}
     
     Follow the user's instructions carefully. Style your responses in Markdown. Return all the inline math symbols within single $ and standalone formula within double $. For example, $\pi$.
-    """.format(current_time)
+    """.format(current_architecture, current_time)
     ordered_messages_list.append({'is_bot': False, 'message': new_message_content})
     if frugal_mode:
         ordered_messages_list = ordered_messages_list[-1:]
