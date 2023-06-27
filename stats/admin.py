@@ -7,7 +7,7 @@ from .models import TokenUsage, Profile
 @admin.register(TokenUsage)
 class TokenUsageAdmin(admin.ModelAdmin):
     list_display = ('user', 'tokens')
-
+    search_fields = ('user__username', 'tokens')
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
