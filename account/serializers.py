@@ -42,8 +42,3 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         fields = (*extra_fields,)
         read_only_fields = ('email',)
 
-
-@receiver(post_save, sender=UserModel)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
