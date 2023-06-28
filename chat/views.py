@@ -570,7 +570,7 @@ def get_api_key_from_setting():
     return None
 
 
-def get_api_key(user, key_name='gpt-3.5-turbo', model_name=None):
+def get_api_key(user, key_name='gpt-3.5-turbo', model_name="gpt-3.5-turbo"):
     try:
         api_key = ApiKey.objects.filter(
             is_enabled=True, remark__iexact=key_name).order_by('token_used').first()
