@@ -392,7 +392,8 @@ def conversation(request):
             messages=messages['messages'],
             tokens=messages['tokens'],
             api_key=api_key,
-            model_name=model['name']
+            model_name=model['name'],
+            ai_response=False
         )
         yield sse_pack('userMessageId', {
             'userMessageId': message_obj.id,
@@ -457,7 +458,7 @@ def check_few_shot_messages(messages):
 
 
 def create_message(user, conversation_id, message, is_bot=False, messages='', tokens=0, api_key=None,
-                   model_name="gpt-3.5-turbo"):
+                   model_name="gpt-3.5-turbo", ai_response=True):
     message_obj = Message(
         conversation_id=conversation_id,
         message=message,
@@ -467,24 +468,43 @@ def create_message(user, conversation_id, message, is_bot=False, messages='', to
     )
     message_obj.save()
 
-    increase_token_usage(user, tokens, api_key, model_name=model_name)
+    increase_token_usage(user, tokens, api_key, model_name=model_name, ai_response=ai_response)
 
     return message_obj
 
 
-def increase_token_usage(user, tokens, api_key=None, model_name="gpt-3.5-turbo"):
+def increase_token_usage(user, tokens, api_key=None, model_name="gpt-3.5-turbo", ai_response=True):
     token_usage, created = TokenUsage.objects.get_or_create(user=user)
-    if "16k" in model_name:
-        tokens *= 2
+    """
+    将gpt-3.5-turbo-4k的output作为标准，系数为1，价格为$0.002/1k，则各个模型的token系数如下：
+    gpt-3.5-turbo-4k, input: 0.75
+    gpt-3.5-turbo-4k, output: 1
+    gpt-3.5-turbo-16k, input: 1.5
+    gpt-3.5-turbo-16k, output: 2
+    gpt-4-8k, input: 15
+    gpt-4-8k, output: 30
+    
+    """
+    if "gpt-3.5-turbo-16k" in model_name:
+        if ai_response:
+            equivalent_tokens = tokens * 2
+        else:
+            equivalent_tokens = tokens * 1.5
     elif "gpt-4" in model_name:
-        tokens *= 30
+        if ai_response:
+            equivalent_tokens = tokens * 30
+        else:
+            equivalent_tokens = tokens * 15
     else:
-        pass
-    token_usage.tokens += tokens
+        if ai_response:
+            equivalent_tokens = tokens
+        else:
+            equivalent_tokens = tokens * 0.75
+    token_usage.tokens += equivalent_tokens
     token_usage.save()
 
     if api_key:
-        api_key.token_used += tokens
+        api_key.token_used += equivalent_tokens
         api_key.save()
 
 
