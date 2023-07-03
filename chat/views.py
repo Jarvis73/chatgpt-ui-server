@@ -262,7 +262,7 @@ def gen_title(request):
         title = completion_text.strip().replace('"', '')
 
         # increment the token count
-        increase_token_usage(request.user, openai_response['usage']['total_tokens'], api_key)
+        increase_token_usage(request.user, openai_response['usage']['total_tokens'], api_key, model_name=model['name'])
     except Exception as e:
         print(e)
         title = 'Untitled Conversation'
@@ -391,7 +391,8 @@ def conversation(request):
             message=message,
             messages=messages['messages'],
             tokens=messages['tokens'],
-            api_key=api_key
+            api_key=api_key,
+            model_name=model['name']
         )
         yield sse_pack('userMessageId', {
             'userMessageId': message_obj.id,
@@ -423,7 +424,8 @@ def conversation(request):
             message=completion_text,
             is_bot=True,
             tokens=ai_message_token,
-            api_key=api_key
+            api_key=api_key,
+            model_name=model['name']
         )
         yield sse_pack('done', {
             'messageId': ai_message_obj.id,
@@ -454,7 +456,8 @@ def check_few_shot_messages(messages):
                              f'got {list(item.keys())}')
 
 
-def create_message(user, conversation_id, message, is_bot=False, messages='', tokens=0, api_key=None):
+def create_message(user, conversation_id, message, is_bot=False, messages='', tokens=0, api_key=None,
+                   model_name="gpt-3.5-turbo"):
     message_obj = Message(
         conversation_id=conversation_id,
         message=message,
@@ -464,13 +467,19 @@ def create_message(user, conversation_id, message, is_bot=False, messages='', to
     )
     message_obj.save()
 
-    increase_token_usage(user, tokens, api_key)
+    increase_token_usage(user, tokens, api_key, model_name=model_name)
 
     return message_obj
 
 
-def increase_token_usage(user, tokens, api_key=None):
+def increase_token_usage(user, tokens, api_key=None, model_name="gpt-3.5-turbo"):
     token_usage, created = TokenUsage.objects.get_or_create(user=user)
+    if "16k" in model_name:
+        tokens *= 2
+    elif "gpt-4" in model_name:
+        tokens *= 30
+    else:
+        pass
     token_usage.tokens += tokens
     token_usage.save()
 
