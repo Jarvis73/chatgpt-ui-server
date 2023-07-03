@@ -154,26 +154,26 @@ class MaskViewSet(viewsets.ModelViewSet):
 
 
 MODELS = {
-    # 'gpt-3.5-turbo': {
-    #     'name': 'gpt-3.5-turbo-0613',
-    #     'key_name': 'gpt-3.5-turbo-azure',
-    #     'max_tokens': 4096,
-    #     'max_prompt_tokens': 1596,
-    #     'max_response_tokens': 2500,
-    #     'azure': True,
-    #     'kwargs': {
-    #         'engine': '35-0613'
-    #     },
-    # },
     'gpt-3.5-turbo': {
         'name': 'gpt-3.5-turbo-0613',
-        'key_name': 'gpt-3.5-turbo',
+        'key_name': 'gpt-3.5-turbo-azure',
         'max_tokens': 4096,
         'max_prompt_tokens': 1596,
         'max_response_tokens': 2500,
-        'azure': False,
-        'kwargs': {},
+        'azure': True,
+        'kwargs': {
+            'engine': '35-0613'
+        },
     },
+    # 'gpt-3.5-turbo': {
+    #     'name': 'gpt-3.5-turbo-0613',
+    #     'key_name': 'gpt-3.5-turbo',
+    #     'max_tokens': 4096,
+    #     'max_prompt_tokens': 1596,
+    #     'max_response_tokens': 2500,
+    #     'azure': False,
+    #     'kwargs': {},
+    # },
     'gpt-3.5-turbo-16k': {
         'name': 'gpt-3.5-turbo-16k-0613',
         'key_name': 'gpt-3.5-turbo',
@@ -410,10 +410,6 @@ def conversation(request):
                 event_text = event['choices'][0]['delta']['content']
                 completion_text += event_text  # append the text
                 yield sse_pack('message', {'content': event_text})
-                if model['azure']:
-                    # We slow down the message output when using Azure
-                    # because it is too fast!!!
-                    time.sleep(0.02)
             # Check is_running every 10 ticks.
             if idx % 10 == 0 and cache.get(request.user) == 0:
                 break
