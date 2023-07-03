@@ -165,6 +165,17 @@ MODELS = {
             'engine': 'gpt35'
         },
     },
+    'gpt-3.5-turbo-16k': {
+        'name': 'gpt-3.5-turbo-16k-0613',
+        'key_name': 'gpt-3.5-turbo-azure',
+        'max_tokens': 16384,
+        'max_prompt_tokens': 2384,
+        'max_response_tokens': 14000,
+        'azure': True,
+        'kwargs': {
+            'engine': 'gpt35-16k'
+        },
+    },
     # 'gpt-3.5-turbo': {
     #     'name': 'gpt-3.5-turbo-0613',
     #     'key_name': 'gpt-3.5-turbo',
@@ -174,15 +185,15 @@ MODELS = {
     #     'azure': False,
     #     'kwargs': {},
     # },
-    'gpt-3.5-turbo-16k': {
-        'name': 'gpt-3.5-turbo-16k-0613',
-        'key_name': 'gpt-3.5-turbo',
-        'max_tokens': 16384,
-        'max_prompt_tokens': 2384,
-        'max_response_tokens': 14000,
-        'azure': False,
-        'kwargs': {},
-    },
+    # 'gpt-3.5-turbo-16k': {
+    #     'name': 'gpt-3.5-turbo-16k-0613',
+    #     'key_name': 'gpt-3.5-turbo',
+    #     'max_tokens': 16384,
+    #     'max_prompt_tokens': 2384,
+    #     'max_response_tokens': 14000,
+    #     'azure': False,
+    #     'kwargs': {},
+    # },
     'gpt-4': {
         # 'name': 'gpt-4-0613',
         # 'name': 'gpt-4',
@@ -294,7 +305,7 @@ def conversation(request):
     message = request.data.get('message')
     conversation_id = request.data.get('conversationId')
     request_max_response_tokens = request.data.get('max_tokens')
-    temperature = request.data.get('temperature', 0.7)
+    temperature = request.data.get('temperature', 1.0)
     top_p = request.data.get('top_p', 1)
     frequency_penalty = request.data.get('frequency_penalty', 0)
     presence_penalty = request.data.get('presence_penalty', 0)
