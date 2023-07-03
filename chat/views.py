@@ -162,7 +162,7 @@ MODELS = {
         'max_response_tokens': 2500,
         'azure': True,
         'kwargs': {
-            'engine': '35-0613'
+            'engine': 'gpt35'
         },
     },
     # 'gpt-3.5-turbo': {
