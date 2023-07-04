@@ -8,7 +8,8 @@ urlpatterns = [
     path('registration/', RegistrationView.as_view(), name='rest_register'),
     path('verify-email/', VerifyEmailView.as_view(), name='rest_verify_email'),
     path('registration/resend-email/', ResendEmailVerificationView.as_view(), name="rest_resend_email"),
-
+    path('accounts/', include('allauth.urls')),
+    path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
     # This url is used by django-allauth and empty TemplateView is
     # defined just to allow reverse() call inside app, for example when email
     # with verification link is being sent, then it's required to render email
