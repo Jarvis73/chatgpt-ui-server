@@ -575,15 +575,15 @@ def build_messages(
         else:
             message_content = message['message']
         new_message = {"role": role, "content": message_content}
-        new_token_count = num_tokens_from_messages(system_messages + messages + [new_message], model['name'])
-        if new_token_count > max_token_count:
+        new_token_count = num_tokens_from_messages([new_message], model['name'])
+        updated_token_count = current_token_count + new_token_count
+        if updated_token_count > max_token_count:
             if len(messages) > 0:
                 break
             raise ValueError(
-                f"Prompt is too long. Max token count is {max_token_count}, but prompt is {new_token_count} tokens long.")
+                f"Prompt is too long. Max token count is {max_token_count}, but prompt is {current_token_count} tokens long.")
         messages.insert(0, new_message)
-        current_token_count = new_token_count
-
+        current_token_count = updated_token_count
     result['messages'] = system_messages + messages
     result['tokens'] = current_token_count
 
