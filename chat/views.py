@@ -176,24 +176,24 @@ MODELS = {
             'engine': 'gpt35-16k'
         },
     },
-    # 'gpt-3.5-turbo': {
-    #     'name': 'gpt-3.5-turbo-0613',
-    #     'key_name': 'gpt-3.5-turbo',
-    #     'max_tokens': 4096,
-    #     'max_prompt_tokens': 1596,
-    #     'max_response_tokens': 2500,
-    #     'azure': False,
-    #     'kwargs': {},
-    # },
-    # 'gpt-3.5-turbo-16k': {
-    #     'name': 'gpt-3.5-turbo-16k-0613',
-    #     'key_name': 'gpt-3.5-turbo',
-    #     'max_tokens': 16384,
-    #     'max_prompt_tokens': 2384,
-    #     'max_response_tokens': 14000,
-    #     'azure': False,
-    #     'kwargs': {},
-    # },
+    'gpt-3.5-turbo-oai': {
+        'name': 'gpt-3.5-turbo-0613',
+        'key_name': 'gpt-3.5-turbo',
+        'max_tokens': 4096,
+        'max_prompt_tokens': 1596,
+        'max_response_tokens': 2500,
+        'azure': False,
+        'kwargs': {},
+    },
+    'gpt-3.5-turbo-16k-oai': {
+        'name': 'gpt-3.5-turbo-16k-0613',
+        'key_name': 'gpt-3.5-turbo',
+        'max_tokens': 16384,
+        'max_prompt_tokens': 2384,
+        'max_response_tokens': 14000,
+        'azure': False,
+        'kwargs': {},
+    },
     'gpt-4': {
         # 'name': 'gpt-4-0613',
         # 'name': 'gpt-4',
@@ -231,13 +231,8 @@ def gen_title(request):
     message = Message.objects.filter(conversation_id=conversation_id).order_by('created_at').first()
     openai_api_key = request.data.get('openaiApiKey') or None
     api_key = None
-
-    model = MODELS['gpt-3.5-turbo']
-
-    # if openai_api_key is None:
-    #     openai_api_key = get_api_key_from_setting()
-
     if openai_api_key is None:
+        model = MODELS['gpt-3.5-turbo']
         api_key = get_api_key(request.user, model['key_name'], model['name'])
         if api_key:
             openai_api_key = api_key.key
@@ -248,6 +243,8 @@ def gen_title(request):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
+    else:
+        model = MODELS['gpt-3.5-turbo-oai']
 
     if prompt is None:
         prompt = 'Generate a short title for the following content, no more than 10 words.'
@@ -300,7 +297,6 @@ def stop_conversation(request):
 def conversation(request):
     # Set an is_running flag for responding the stop request
     cache.set(request.user, 1, 300)
-
     model_name = request.data.get('name')
     message = request.data.get('message')
     conversation_id = request.data.get('conversationId')
@@ -316,13 +312,10 @@ def conversation(request):
     mask_avatar = request.data.get('maskAvatar', '')
     few_shot_messages = request.data.get('fewShotMask', [])
     api_key = None
-
-    model = get_current_model(model_name, request_max_response_tokens)
-
     # if openai_api_key is None:
     #     openai_api_key = get_api_key_from_setting()
-
     if openai_api_key is None:
+        model = get_current_model(model_name, request_max_response_tokens)
         api_key = get_api_key(request.user, model['key_name'], model['name'])
         if api_key:
             openai_api_key = api_key.key
@@ -333,7 +326,10 @@ def conversation(request):
                 },
                 status=status.HTTP_403_FORBIDDEN
             )
-
+    else:
+        if "3.5" in model_name:
+            model_name += "-oai"
+        model = get_current_model(model_name, request_max_response_tokens)
     try:
         check_few_shot_messages(few_shot_messages)
         messages = build_messages(model, conversation_id, message, few_shot_messages, web_search_params, frugal_mode)
