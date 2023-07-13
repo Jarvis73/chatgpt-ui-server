@@ -3,6 +3,7 @@ import json
 import openai
 import time
 import datetime
+import random
 import tiktoken
 import datetime
 from provider.models import ApiKey
@@ -154,28 +155,51 @@ class MaskViewSet(viewsets.ModelViewSet):
 
 
 MODELS = {
-    'gpt-3.5-turbo': {
-        'name': 'gpt-3.5-turbo-0613',
-        'key_name': 'gpt-3.5-turbo-azure',
-        'max_tokens': 4096,
-        'max_prompt_tokens': 1596,
-        'max_response_tokens': 2500,
-        'azure': True,
-        'kwargs': {
-            'engine': 'gpt35'
+    'gpt-3.5-turbo': [
+        {
+            'name': 'gpt-3.5-turbo-0613',
+            'key_name': 'gpt-3.5-turbo-azure',
+            'max_tokens': 4096,
+            'max_prompt_tokens': 1596,
+            'max_response_tokens': 2500,
+            'azure': True,
+            'kwargs': {
+                'engine': 'gpt35'
+            },
         },
-    },
-    'gpt-3.5-turbo-16k': {
-        'name': 'gpt-3.5-turbo-16k-0613',
-        'key_name': 'gpt-3.5-turbo-azure',
-        'max_tokens': 16384,
-        'max_prompt_tokens': 2384,
-        'max_response_tokens': 14000,
-        'azure': True,
-        'kwargs': {
-            'engine': 'gpt35-16k'
+        {
+            'name': 'gpt-3.5-turbo-0613',
+            'key_name': 'gpt-3.5-turbo',
+            'max_tokens': 4096,
+            'max_prompt_tokens': 1596,
+            'max_response_tokens': 2500,
+            'azure': False,
+            'kwargs': {},
         },
-    },
+    ],
+
+    'gpt-3.5-turbo-16k': [
+        {
+            'name': 'gpt-3.5-turbo-16k-0613',
+            'key_name': 'gpt-3.5-turbo-azure',
+            'max_tokens': 16384,
+            'max_prompt_tokens': 2384,
+            'max_response_tokens': 14000,
+            'azure': True,
+            'kwargs': {
+                'engine': 'gpt35-16k'
+            },
+        },
+        {
+            'name': 'gpt-3.5-turbo-0613',
+            'key_name': 'gpt-3.5-turbo',
+            'max_tokens': 4096,
+            'max_prompt_tokens': 1596,
+            'max_response_tokens': 2500,
+            'azure': False,
+            'kwargs': {},
+        },
+    ],
     'gpt-3.5-turbo-oai': {
         'name': 'gpt-3.5-turbo-0613',
         'key_name': 'gpt-3.5-turbo',
@@ -194,17 +218,19 @@ MODELS = {
         'azure': False,
         'kwargs': {},
     },
-    'gpt-4': {
-        # 'name': 'gpt-4-0613',
-        # 'name': 'gpt-4',
-        'name': 'gpt-4-0314',
-        'key_name': 'gpt-4',
-        'max_tokens': 8192,
-        'max_prompt_tokens': 2196,
-        'max_response_tokens': 6000,
-        'azure': False,
-        'kwargs': {},
-    }
+    'gpt-4': [
+        {
+            # 'name': 'gpt-4-0613',
+            # 'name': 'gpt-4',
+            'name': 'gpt-4-0314',
+            'key_name': 'gpt-4',
+            'max_tokens': 8192,
+            'max_prompt_tokens': 2196,
+            'max_response_tokens': 6000,
+            'azure': False,
+            'kwargs': {},
+        }
+    ]
 }
 
 MODEL_SET = {
@@ -232,7 +258,7 @@ def gen_title(request):
     openai_api_key = request.data.get('openaiApiKey') or None
     api_key = None
     if openai_api_key is None:
-        model = MODELS['gpt-3.5-turbo']
+        model = random.choice(MODELS['gpt-3.5-turbo'])
         api_key = get_api_key(request.user, model['key_name'], model['name'])
         if api_key:
             openai_api_key = api_key.key
@@ -590,7 +616,7 @@ def get_current_model(model_name, request_max_response_tokens):
     if model_name is None:
         model_name = "gpt-3.5-turbo"
     try:
-        model = MODELS[model_name]
+        model = random.choice(MODELS[model_name])
     except KeyError:
         raise NotImplementedError("{} is not implemented".format(model_name))
     if request_max_response_tokens is not None:
