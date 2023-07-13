@@ -274,7 +274,7 @@ def gen_title(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
     else:
-        model = MODELS['gpt-3.5-turbo-oai']
+        model = random.choice(MODELS['gpt-3.5-turbo-oai'])
 
     if prompt is None:
         prompt = 'Generate a short title for the following content, no more than 10 words.'
