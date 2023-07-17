@@ -277,7 +277,9 @@ def gen_title(request):
         model = random.choice(MODELS['gpt-3.5-turbo-oai'])
 
     if prompt is None:
-        prompt = 'Generate a short title for the following content, no more than 10 words.'
+        prompt = 'You are ChatGPT, a large language model trained by OpenAI. ' \
+                 'Carefully create an appropriate concise title to summarize the following content, ' \
+                 'not exceeding 10 words.'
 
     messages = [
         {"role": "system", "content": prompt},
