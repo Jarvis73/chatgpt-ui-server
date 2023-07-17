@@ -41,9 +41,10 @@ class RegistrationView(RegisterView):
             if 'code' not in request.data or \
                     hashlib.sha256(request.data['code'].encode('utf-8')).hexdigest() \
                     not in ['065116489e21a5c20337b797c839e5c75c014924291ac33cb21989623e89adeb',
-                            '28c40a09850b45231ecf23e720b465b19f7998cc9cdc9d88150c71dd5443b3aa',
                             '5c9a1a2e3a373e26850a1801c58dd59060b84be062b327cf022974b8f98cccc0',
-                            '2da96cc671ddb485ca378e39e259585a58c4c4f68555bdb0457d3c5553e9ec8b']:
+                            '2da96cc671ddb485ca378e39e259585a58c4c4f68555bdb0457d3c5553e9ec8b',
+                            '28c40a09850b45231ecf23e720b465b19f7998cc9cdc9d88150c71dd5443b3aa',
+                            '0161740f12393b52e1f01414a7c5e52d0d67b40c646259080a7d6e499d3ed74e']:
                 return Response({'detail': 'Invalid invitation code.'}, status=status.HTTP_403_FORBIDDEN)
 
         # 执行注册
