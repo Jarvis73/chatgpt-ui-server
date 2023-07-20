@@ -1,9 +1,8 @@
 FROM python:3.10-slim as wsgi-server
 
-RUN  sed -i s@/deb.debian.org/@/mirrors.aliyun.com/@g /etc/apt/sources.list
+#RUN  sed -i s@/deb.debian.org/@/mirrors.aliyun.com/@g /etc/apt/sources.list /etc/apt/sources.list.d/*
 
-RUN apt clean \
-    && apt update \
+RUN apt update \
     && apt install -y --no-install-recommends python3-dev default-libmysqlclient-dev build-essential libpq-dev dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
