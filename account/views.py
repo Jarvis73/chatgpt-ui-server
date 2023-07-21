@@ -6,6 +6,7 @@ from dj_rest_auth.app_settings import api_settings
 from dj_rest_auth.registration.views import RegisterView
 from dj_rest_auth.utils import jwt_encode
 from chat.models import Setting
+from provider.models import InvCode
 from allauth.account import signals, app_settings as allauth_account_settings
 from allauth.account.utils import perform_login
 from rest_framework.exceptions import ValidationError
@@ -22,31 +23,17 @@ class RegistrationView(RegisterView):
         if open_registration is False:
             return Response({'detail': 'Registration is not yet open.'}, status=status.HTTP_403_FORBIDDEN)
 
-        # 获取邀请码余量
-        try:
-            code_inventory_quantity = int(Setting.objects.get(name='code_inventory_quantity').value)
-        except Setting.DoesNotExist:
-            code_inventory_quantity = 0
-
-        if not code_inventory_quantity:
-            return Response({'detail': 'Registration is not yet open.'}, status=status.HTTP_403_FORBIDDEN)
-
         # 判断邀请码是否正确
         try:
             open_code = Setting.objects.get(name='open_code').value == 'True'
         except Setting.DoesNotExist:
             open_code = True
         if open_code is True:
-            # 使用 sha256 来验证邀请码, 以防邀请码泄露
-            if 'code' not in request.data or \
-                    hashlib.sha256(request.data['code'].encode('utf-8')).hexdigest() \
-                    not in ['065116489e21a5c20337b797c839e5c75c014924291ac33cb21989623e89adeb',
-                            '5c9a1a2e3a373e26850a1801c58dd59060b84be062b327cf022974b8f98cccc0',
-                            '2da96cc671ddb485ca378e39e259585a58c4c4f68555bdb0457d3c5553e9ec8b',
-                            '28c40a09850b45231ecf23e720b465b19f7998cc9cdc9d88150c71dd5443b3aa',
-                            '0161740f12393b52e1f01414a7c5e52d0d67b40c646259080a7d6e499d3ed74e']:
+            inv_code = request.data.get('code')
+            try:
+                inv_code_obj = InvCode.objects.get(code=inv_code, available_uses__gt=0)
+            except InvCode.DoesNotExist:
                 return Response({'detail': 'Invalid invitation code.'}, status=status.HTTP_403_FORBIDDEN)
-
         # 执行注册
         serializer = self.get_serializer(data=request.data)
         try:
@@ -76,11 +63,10 @@ class RegistrationView(RegisterView):
 
         # 注册成功, 减少邀请码数量
         try:
-            code_inventory_quantity = Setting.objects.get(name='code_inventory_quantity')
-            if int(code_inventory_quantity.value) > 0:
-                code_inventory_quantity.value = int(code_inventory_quantity.value) - 1
-                code_inventory_quantity.save()
-        except Setting.DoesNotExist:
+            inv_code_obj = InvCode.objects.get(code=self.request.data.get('code'), available_uses__gt=0)
+            inv_code_obj.available_uses -= 1
+            inv_code_obj.save()
+        except InvCode.DoesNotExist:
             pass
 
         if allauth_account_settings.EMAIL_VERIFICATION != \

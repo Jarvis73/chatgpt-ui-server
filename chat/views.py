@@ -37,7 +37,6 @@ class SettingViewSet(viewsets.ModelViewSet):
             'open_api_key_setting',
             'open_frugal_mode_control',
             'open_code',
-            'code_inventory_quantity',
             'azure_api_base',
             'share_mask_account',
         ]
