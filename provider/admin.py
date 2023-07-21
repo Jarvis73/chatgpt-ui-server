@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.forms import BooleanField
 from django.forms.widgets import CheckboxInput
-from .models import ApiKey
+from .models import ApiKey,InvCode
 
 
 @admin.register(ApiKey)
@@ -11,3 +11,8 @@ class ApiKeyAdmin(admin.ModelAdmin):
     formfield_overrides = {
         BooleanField: {'widget': CheckboxInput},
     }
+
+
+@admin.register(InvCode)
+class InvCodeAdmin(admin.ModelAdmin):
+    list_display = ('code', 'available_uses')

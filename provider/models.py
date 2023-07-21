@@ -10,3 +10,8 @@ class ApiKey(models.Model):
 
     def __str__(self):
         return self.key
+
+
+class InvCode(models.Model):
+    code = models.CharField(max_length=255, unique=True)  # 邀请码字段，字符串类型，确保唯一性
+    available_uses = models.IntegerField(default=500)  # 邀请码的可用次数
