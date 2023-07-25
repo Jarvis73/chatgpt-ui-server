@@ -451,7 +451,7 @@ def conversation(request):
                 if model['azure']:
                     # We slow down the message output when using Azure
                     # because it is too fast!!!
-                    time.sleep(0.02)
+                    time.sleep(0.01)
             # Check is_running every 10 ticks.
             if idx % 10 == 0 and cache.get(request.user) == 0:
                 break
