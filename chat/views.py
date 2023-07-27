@@ -37,7 +37,6 @@ class SettingViewSet(viewsets.ModelViewSet):
             'open_api_key_setting',
             'open_frugal_mode_control',
             'open_code',
-            'azure_api_base',
             'share_mask_account',
         ]
         return Setting.objects.filter(name__in=available_names)
