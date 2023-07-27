@@ -639,8 +639,10 @@ def get_api_key_from_setting():
 
 def get_api_key(user, key_name='gpt-3.5-turbo', model_name="gpt-3.5-turbo"):
     try:
-        api_key = ApiKey.objects.filter(
-            is_enabled=True, remark__iexact=key_name).order_by('token_used').first()
+        api_keys = ApiKey.objects.filter(is_enabled=True, remark__iexact=key_name)
+        # api_key = ApiKey.objects.filter(
+        #     is_enabled=True, remark__iexact=key_name).order_by('token_used').first()
+        api_key = random.choice(api_keys) if api_keys else None
         # gpt-4 is only for vip
         if api_key is not None and ("16k" in model_name or "gpt-4" in model_name):
             user = Profile.objects.filter(user=user)
