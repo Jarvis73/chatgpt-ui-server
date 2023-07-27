@@ -162,6 +162,7 @@ MODELS = {
         #     'max_prompt_tokens': 1596,
         #     'max_response_tokens': 2500,
         #     'azure': True,
+        #     "rpm": 2880,
         #     'kwargs': {
         #         'engine': 'gpt35'
         #     },
@@ -173,6 +174,7 @@ MODELS = {
             'max_prompt_tokens': 1596,
             'max_response_tokens': 2500,
             'azure': False,
+            "rpm": 7000,
             'kwargs': {},
         },
         {
@@ -182,22 +184,24 @@ MODELS = {
             'max_prompt_tokens': 1596,
             'max_response_tokens': 2500,
             'azure': False,
+            "rpm": 7000,
             'kwargs': {},
         },
     ],
 
     'gpt-3.5-turbo-16k': [
-        {
-            'name': 'gpt-3.5-turbo-16k-0613',
-            'key_name': 'gpt-3.5-turbo-azure',
-            'max_tokens': 16384,
-            'max_prompt_tokens': 2384,
-            'max_response_tokens': 14000,
-            'azure': True,
-            'kwargs': {
-                'engine': 'gpt35-16k'
-            },
-        },
+        # {
+        #     'name': 'gpt-3.5-turbo-16k-0613',
+        #     'key_name': 'gpt-3.5-turbo-azure',
+        #     'max_tokens': 16384,
+        #     'max_prompt_tokens': 2384,
+        #     'max_response_tokens': 14000,
+        #     'azure': True,
+        #     "rpm": 2880,
+        #     'kwargs': {
+        #         'engine': 'gpt35-16k'
+        #     },
+        # },
         {
             'name': 'gpt-3.5-turbo-16k-0613',
             'key_name': 'gpt-3.5-turbo',
@@ -205,6 +209,7 @@ MODELS = {
             'max_prompt_tokens': 2384,
             'max_response_tokens': 14000,
             'azure': False,
+            "rpm": 7000,
             'kwargs': {},
         },
     ],
@@ -216,6 +221,7 @@ MODELS = {
             'max_prompt_tokens': 1596,
             'max_response_tokens': 2500,
             'azure': False,
+            "rpm": 3500,
             'kwargs': {},
         }
     ],
@@ -227,6 +233,7 @@ MODELS = {
             'max_prompt_tokens': 2384,
             'max_response_tokens': 14000,
             'azure': False,
+            "rpm": 3500,
             'kwargs': {},
         }
     ],
@@ -240,6 +247,7 @@ MODELS = {
             'max_prompt_tokens': 2196,
             'max_response_tokens': 6000,
             'azure': False,
+            "rpm": 200,
             'kwargs': {},
         }
     ]
@@ -259,6 +267,17 @@ def sse_pack(event, data):
     return packet
 
 
+def weighted_choice(choices):
+    total_weight = sum(choice['rpm'] for choice in choices)
+    rand_value = random.uniform(0, total_weight)
+    cumulative_weight = 0
+
+    for choice in choices:
+        cumulative_weight += choice['rpm']
+        if rand_value <= cumulative_weight:
+            return choice
+
+
 @api_view(['POST'])
 # @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -269,11 +288,13 @@ def gen_title(request):
     message = Message.objects.filter(conversation_id=conversation_id).order_by('created_at').first()
     openai_api_key = request.data.get('openaiApiKey') or None
     api_key = None
+    openai_api_base = None
     if openai_api_key is None:
         model = random.choice(MODELS['gpt-3.5-turbo'])
         api_key = get_api_key(request.user, model['key_name'], model['name'])
         if api_key:
             openai_api_key = api_key.key
+            openai_api_base = api_key.api_base
         else:
             return Response(
                 {
@@ -294,7 +315,7 @@ def gen_title(request):
         {"role": "user", "content": message.message},
     ]
 
-    my_openai = get_openai(model, openai_api_key)
+    my_openai = get_openai(model, openai_api_key, openai_api_base)
     try:
         openai_response = my_openai.ChatCompletion.create(
             model=model['name'],
@@ -352,13 +373,13 @@ def conversation(request):
     mask_avatar = request.data.get('maskAvatar', '')
     few_shot_messages = request.data.get('fewShotMask', [])
     api_key = None
-    # if openai_api_key is None:
-    #     openai_api_key = get_api_key_from_setting()
+    openai_api_base = None
     if openai_api_key is None:
         model = get_current_model(model_name, request_max_response_tokens)
         api_key = get_api_key(request.user, model['key_name'], model['name'])
         if api_key:
             openai_api_key = api_key.key
+            openai_api_base = api_key.api_base
         else:
             return Response(
                 {
@@ -386,7 +407,7 @@ def conversation(request):
         )
 
     def stream_content():
-        my_openai = get_openai(model, openai_api_key)
+        my_openai = get_openai(model, openai_api_key, openai_api_base)
         try:
             openai_response = my_openai.ChatCompletion.create(
                 model=model['name'],
@@ -630,7 +651,8 @@ def get_current_model(model_name, request_max_response_tokens):
     if model_name is None:
         model_name = "gpt-3.5-turbo"
     try:
-        model = random.choice(MODELS[model_name])
+        models = MODELS[model_name]
+        model = weighted_choice(models)
     except KeyError:
         raise NotImplementedError("{} is not implemented".format(model_name))
     if request_max_response_tokens is not None:
@@ -716,14 +738,13 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
     return num_tokens
 
 
-def get_openai(model, openai_api_key):
+def get_openai(model, openai_api_key, openai_api_base=None):
     if model['azure']:
         openai.api_type = "azure"
         openai.api_key = openai_api_key
-        api_base = Setting.objects.filter(name='azure_api_base').first()
-        if not api_base:
+        if not openai_api_base:
             raise ValueError('Missing azure_api_base.')
-        openai.api_base = api_base.value
+        openai.api_base = openai_api_base
         openai.api_version = "2023-03-15-preview"
     else:
         openai.api_type = "open_ai"

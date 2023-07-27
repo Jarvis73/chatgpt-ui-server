@@ -3,6 +3,7 @@ from django.db import models
 
 class ApiKey(models.Model):
     key = models.CharField(max_length=100, unique=True)
+    api_base = models.CharField(max_length=100, default="https://api.openai.com/v1")
     token_used = models.IntegerField(default=0)
     remark = models.CharField(max_length=255)
     is_enabled = models.BooleanField(default=True)
