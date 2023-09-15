@@ -154,27 +154,17 @@ class MaskViewSet(viewsets.ModelViewSet):
 
 MODELS = {
     'gpt-3.5-turbo': [
-        # {
-        #     'name': 'gpt-3.5-turbo-0613',
-        #     'key_name': 'gpt-3.5-turbo-azure',
-        #     'max_tokens': 4096,
-        #     'max_prompt_tokens': 1596,
-        #     'max_response_tokens': 2500,
-        #     'azure': True,
-        #     "rpm": 2880,
-        #     'kwargs': {
-        #         'engine': 'gpt35'
-        #     },
-        # },
         {
             'name': 'gpt-3.5-turbo-0613',
-            'key_name': 'gpt-3.5-turbo',
+            'key_name': 'gpt-3.5-turbo-azure',
             'max_tokens': 4096,
             'max_prompt_tokens': 1596,
             'max_response_tokens': 2500,
-            'azure': False,
-            "rpm": 7000,
-            'kwargs': {},
+            'azure': True,
+            "rpm": 3600,
+            'kwargs': {
+                'engine': 'gpt35'
+            },
         },
         {
             'name': 'gpt-3.5-turbo',
@@ -183,24 +173,24 @@ MODELS = {
             'max_prompt_tokens': 1596,
             'max_response_tokens': 2500,
             'azure': False,
-            "rpm": 7000,
+            "rpm": 3600,
             'kwargs': {},
         },
     ],
 
     'gpt-3.5-turbo-16k': [
-        # {
-        #     'name': 'gpt-3.5-turbo-16k-0613',
-        #     'key_name': 'gpt-3.5-turbo-azure',
-        #     'max_tokens': 16384,
-        #     'max_prompt_tokens': 2384,
-        #     'max_response_tokens': 14000,
-        #     'azure': True,
-        #     "rpm": 2880,
-        #     'kwargs': {
-        #         'engine': 'gpt35-16k'
-        #     },
-        # },
+        {
+            'name': 'gpt-3.5-turbo-16k-0613',
+            'key_name': 'gpt-3.5-turbo-azure',
+            'max_tokens': 16384,
+            'max_prompt_tokens': 2384,
+            'max_response_tokens': 14000,
+            'azure': True,
+            "rpm": 3600,
+            'kwargs': {
+                'engine': 'gpt35-16k'
+            },
+        },
         {
             'name': 'gpt-3.5-turbo-16k-0613',
             'key_name': 'gpt-3.5-turbo',
@@ -208,7 +198,7 @@ MODELS = {
             'max_prompt_tokens': 2384,
             'max_response_tokens': 14000,
             'azure': False,
-            "rpm": 7000,
+            "rpm": 3600,
             'kwargs': {},
         },
     ],
@@ -220,7 +210,7 @@ MODELS = {
             'max_prompt_tokens': 1596,
             'max_response_tokens': 2500,
             'azure': False,
-            "rpm": 3500,
+            "rpm": 3000,
             'kwargs': {},
         }
     ],
@@ -232,7 +222,7 @@ MODELS = {
             'max_prompt_tokens': 2384,
             'max_response_tokens': 14000,
             'azure': False,
-            "rpm": 3500,
+            "rpm": 3000,
             'kwargs': {},
         }
     ],
@@ -744,7 +734,7 @@ def get_openai(model, openai_api_key, openai_api_base=None):
         if not openai_api_base:
             raise ValueError('Missing azure_api_base.')
         openai.api_base = openai_api_base
-        openai.api_version = "2023-03-15-preview"
+        openai.api_version = "2023-07-01-preview"
     else:
         openai.api_type = "open_ai"
         openai.api_key = openai_api_key
