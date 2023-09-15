@@ -192,7 +192,7 @@ MODELS = {
             },
         },
         {
-            'name': 'gpt-3.5-turbo-16k',
+            'name': 'gpt-3.5-turbo-16k-0613',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 16384,
             'max_prompt_tokens': 2384,
@@ -204,7 +204,7 @@ MODELS = {
     ],
     'gpt-3.5-turbo-oai': [
         {
-            'name': 'gpt-3.5-turbo',
+            'name': 'gpt-3.5-turbo-0613',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 4096,
             'max_prompt_tokens': 1596,
@@ -216,7 +216,7 @@ MODELS = {
     ],
     'gpt-3.5-turbo-16k-oai': [
         {
-            'name': 'gpt-3.5-turbo-16k',
+            'name': 'gpt-3.5-turbo-16k-0613',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 16384,
             'max_prompt_tokens': 2384,
@@ -470,7 +470,7 @@ def conversation(request):
                 if model['azure']:
                     # We slow down the message output when using Azure
                     # because it is too fast!!!
-                    time.sleep(0.02)
+                    time.sleep(0.01)
             # Check is_running every 10 ticks.
             if idx % 10 == 0 and cache.get(request.user) == 0:
                 break
@@ -682,10 +682,10 @@ def num_tokens_from_text(text, model="gpt-3.5-turbo-0301"):
         encoding = tiktoken.get_encoding("cl100k_base")
 
     if model == "gpt-3.5-turbo":
-        # print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
+        print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
         return num_tokens_from_text(text, model="gpt-3.5-turbo-0301")
     elif model == "gpt-4":
-        # print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
+        print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
         return num_tokens_from_text(text, model="gpt-4-0314")
 
     if model in MODEL_SET['3.5'] or MODEL_SET['4']:
