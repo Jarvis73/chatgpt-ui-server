@@ -734,7 +734,7 @@ def get_openai(model, openai_api_key, openai_api_base=None):
         if not openai_api_base:
             raise ValueError('Missing azure_api_base.')
         openai.api_base = openai_api_base
-        openai.api_version = "2023-07-01-preview"
+        openai.api_version = "2023-09-01-preview"
     else:
         openai.api_type = "open_ai"
         openai.api_key = openai_api_key
