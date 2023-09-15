@@ -154,18 +154,18 @@ class MaskViewSet(viewsets.ModelViewSet):
 
 MODELS = {
     'gpt-3.5-turbo': [
-        {
-            'name': 'gpt-3.5-turbo-0613',
-            'key_name': 'gpt-3.5-turbo-azure',
-            'max_tokens': 4096,
-            'max_prompt_tokens': 1596,
-            'max_response_tokens': 2500,
-            'azure': True,
-            "rpm": 3600,
-            'kwargs': {
-                'engine': 'gpt35'
-            },
-        },
+        # {
+        #     'name': 'gpt-3.5-turbo-0613',
+        #     'key_name': 'gpt-3.5-turbo-azure',
+        #     'max_tokens': 4096,
+        #     'max_prompt_tokens': 1596,
+        #     'max_response_tokens': 2500,
+        #     'azure': True,
+        #     "rpm": 3600,
+        #     'kwargs': {
+        #         'engine': 'gpt35'
+        #     },
+        # },
         {
             'name': 'gpt-3.5-turbo',
             'key_name': 'gpt-3.5-turbo',
