@@ -682,10 +682,10 @@ def num_tokens_from_text(text, model="gpt-3.5-turbo-0301"):
         encoding = tiktoken.get_encoding("cl100k_base")
 
     if model == "gpt-3.5-turbo":
-        print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
+        # print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
         return num_tokens_from_text(text, model="gpt-3.5-turbo-0301")
     elif model == "gpt-4":
-        print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
+        # print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
         return num_tokens_from_text(text, model="gpt-4-0314")
 
     if model in MODEL_SET['3.5'] or MODEL_SET['4']:
