@@ -192,7 +192,7 @@ MODELS = {
             },
         },
         {
-            'name': 'gpt-3.5-turbo-16k-0613',
+            'name': 'gpt-3.5-turbo-16k',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 16384,
             'max_prompt_tokens': 2384,
@@ -204,7 +204,7 @@ MODELS = {
     ],
     'gpt-3.5-turbo-oai': [
         {
-            'name': 'gpt-3.5-turbo-0613',
+            'name': 'gpt-3.5-turbo',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 4096,
             'max_prompt_tokens': 1596,
@@ -216,7 +216,7 @@ MODELS = {
     ],
     'gpt-3.5-turbo-16k-oai': [
         {
-            'name': 'gpt-3.5-turbo-16k-0613',
+            'name': 'gpt-3.5-turbo-16k',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 16384,
             'max_prompt_tokens': 2384,
@@ -470,7 +470,7 @@ def conversation(request):
                 if model['azure']:
                     # We slow down the message output when using Azure
                     # because it is too fast!!!
-                    time.sleep(0.01)
+                    time.sleep(0.02)
             # Check is_running every 10 ticks.
             if idx % 10 == 0 and cache.get(request.user) == 0:
                 break
