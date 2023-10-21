@@ -161,7 +161,7 @@ MODELS = {
             'max_prompt_tokens': 1596,
             'max_response_tokens': 2500,
             'azure': True,
-            "rpm": 3600,
+            "rpm": 1800,
             'kwargs': {
                 'deployment_id': 'gpt35'
             },
@@ -173,7 +173,7 @@ MODELS = {
             'max_prompt_tokens': 1596,
             'max_response_tokens': 2500,
             'azure': False,
-            "rpm": 1800,
+            "rpm": 3600,
             'kwargs': {},
         },
     ],
