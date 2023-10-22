@@ -154,18 +154,18 @@ class MaskViewSet(viewsets.ModelViewSet):
 
 MODELS = {
     'gpt-3.5-turbo': [
-        {
-            'name': 'gpt-3.5-turbo',
-            'key_name': 'gpt-3.5-turbo-azure',
-            'max_tokens': 4096,
-            'max_prompt_tokens': 1596,
-            'max_response_tokens': 2500,
-            'azure': True,
-            "rpm": 1800,
-            'kwargs': {
-                'deployment_id': 'gpt35'
-            },
-        },
+        # {
+        #     'name': 'gpt-3.5-turbo',
+        #     'key_name': 'gpt-3.5-turbo-azure',
+        #     'max_tokens': 4096,
+        #     'max_prompt_tokens': 1596,
+        #     'max_response_tokens': 2500,
+        #     'azure': True,
+        #     "rpm": 1800,
+        #     'kwargs': {
+        #         'deployment_id': 'gpt35'
+        #     },
+        # },
         {
             'name': 'gpt-3.5-turbo',
             'key_name': 'gpt-3.5-turbo',
@@ -182,9 +182,9 @@ MODELS = {
         # {
         #     'name': 'gpt-3.5-turbo-16k',
         #     'key_name': 'gpt-3.5-turbo-azure',
-        #     'max_tokens': 16384,
-        #     'max_prompt_tokens': 2384,
-        #     'max_response_tokens': 14000,
+        #     'max_tokens': 16000,
+        #     'max_prompt_tokens': 3000,
+        #     'max_response_tokens': 13000,
         #     'azure': True,
         #     "rpm": 3600,
         #     'kwargs': {
@@ -192,7 +192,7 @@ MODELS = {
         #     },
         # },
         {
-            'name': 'gpt-3.5-turbo-16k-0613',
+            'name': 'gpt-3.5-turbo-16k',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 16384,
             'max_prompt_tokens': 2384,
@@ -227,16 +227,28 @@ MODELS = {
         }
     ],
     'gpt-4': [
+        # {
+        #     'name': 'gpt-4',
+        #     'key_name': 'gpt-4',
+        #     'max_tokens': 8192,
+        #     'max_prompt_tokens': 2192,
+        #     'max_response_tokens': 6000,
+        #     'azure': False,
+        #     "rpm": 200,
+        #     'kwargs': {},
+        # },
         {
             'name': 'gpt-4',
-            'key_name': 'gpt-4',
+            'key_name': 'gpt-4-azure',
             'max_tokens': 8192,
-            'max_prompt_tokens': 2196,
+            'max_prompt_tokens': 2192,
             'max_response_tokens': 6000,
-            'azure': False,
-            "rpm": 200,
-            'kwargs': {},
-        }
+            'azure': True,
+            "rpm": 1800,
+            'kwargs': {
+                'deployment_id': 'gpt4'
+            },
+        },
     ]
 }
 
