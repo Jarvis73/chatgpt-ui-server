@@ -249,12 +249,24 @@ MODELS = {
                 'deployment_id': 'gpt4'
             },
         },
-    ]
+    ],
+    'gpt-4-turbo': [
+        {
+            'name': 'gpt-4-1106-preview',
+            'key_name': 'gpt-4-turbo',
+            'max_tokens': 32096,
+            'max_prompt_tokens': 28000,
+            'max_response_tokens': 4096,
+            'azure': False,
+            "rpm": 3600,
+            'kwargs': {},
+        },
+    ],
 }
 
 MODEL_SET = {
     '3.5': {'gpt-3.5-turbo-0301', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo-16k-0613'},
-    '4': {'gpt-4', 'gpt-4-0314', 'gpt-4-0613'}
+    '4': {'gpt-4', 'gpt-4-0314', 'gpt-4-0613', 'gpt-4-1106-preview'},
 }
 
 
