@@ -609,9 +609,7 @@ def build_messages(
     else:
         raise NotImplementedError(f"Unknown model name {model['name']}")
     system_prompt = """You are ChatGPT, a large language model trained by OpenAI, based on the {} architecture.
-    
-    Knowledge cutoff: 2021-09
-    
+        
     Current date: {}
     
     Follow the user's instructions carefully. Style your responses in Markdown. Return all the inline math symbols within single $ and standalone formula within double $. For example, $\pi$.
