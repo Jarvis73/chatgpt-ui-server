@@ -154,49 +154,25 @@ class MaskViewSet(viewsets.ModelViewSet):
 
 MODELS = {
     'gpt-3.5-turbo': [
-        # {
-        #     'name': 'gpt-3.5-turbo',
-        #     'key_name': 'gpt-3.5-turbo-azure',
-        #     'max_tokens': 4096,
-        #     'max_prompt_tokens': 1596,
-        #     'max_response_tokens': 2500,
-        #     'azure': True,
-        #     "rpm": 3600,
-        #     'kwargs': {
-        #         'deployment_id': 'gpt35'
-        #     },
-        # },
         {
-            'name': 'gpt-3.5-turbo',
+            'name': 'gpt-3.5-turbo-1106',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 4096,
             'max_prompt_tokens': 1596,
             'max_response_tokens': 2500,
             'azure': False,
-            "rpm": 1800,
+            "rpm": 3600,
             'kwargs': {},
         },
     ],
 
     'gpt-3.5-turbo-16k': [
-        # {
-        #     'name': 'gpt-3.5-turbo-16k',
-        #     'key_name': 'gpt-3.5-turbo-azure',
-        #     'max_tokens': 16384,
-        #     'max_prompt_tokens': 2384,
-        #     'max_response_tokens': 14000,
-        #     'azure': True,
-        #     "rpm": 3600,
-        #     'kwargs': {
-        #         'deployment_id': 'gpt35-16k'
-        #     },
-        # },
         {
-            'name': 'gpt-3.5-turbo-16k-0613',
+            'name': 'gpt-3.5-turbo-1106',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 16384,
-            'max_prompt_tokens': 2384,
-            'max_response_tokens': 14000,
+            'max_prompt_tokens': 12288,
+            'max_response_tokens': 4096,
             'azure': False,
             "rpm": 3600,
             'kwargs': {},
@@ -204,7 +180,7 @@ MODELS = {
     ],
     'gpt-3.5-turbo-oai': [
         {
-            'name': 'gpt-3.5-turbo-0613',
+            'name': 'gpt-3.5-turbo-1106',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 4096,
             'max_prompt_tokens': 1596,
@@ -216,45 +192,45 @@ MODELS = {
     ],
     'gpt-3.5-turbo-16k-oai': [
         {
-            'name': 'gpt-3.5-turbo-16k-0613',
+            'name': 'gpt-3.5-turbo-1106',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 16384,
-            'max_prompt_tokens': 2384,
-            'max_response_tokens': 14000,
+            'max_prompt_tokens': 12288,
+            'max_response_tokens': 4096,
             'azure': False,
             "rpm": 3000,
             'kwargs': {},
         }
     ],
     'gpt-4': [
-        # {
-        #     'name': 'gpt-4',
-        #     'key_name': 'gpt-4',
-        #     'max_tokens': 8192,
-        #     'max_prompt_tokens': 2192,
-        #     'max_response_tokens': 6000,
-        #     'azure': False,
-        #     "rpm": 200,
-        #     'kwargs': {},
-        # },
         {
             'name': 'gpt-4',
-            'key_name': 'gpt-4-azure',
+            'key_name': 'gpt-4',
             'max_tokens': 8192,
             'max_prompt_tokens': 2192,
             'max_response_tokens': 6000,
-            'azure': True,
+            'azure': False,
             "rpm": 200,
-            'kwargs': {
-                'deployment_id': 'gpt4'
-            },
-        }
-    ]
+            'kwargs': {},
+        },
+    ],
+    'gpt-4-turbo': [
+        {
+            'name': 'gpt-4-1106-preview',
+            'key_name': 'gpt-4',
+            'max_tokens': 32096,
+            'max_prompt_tokens': 28000,
+            'max_response_tokens': 4096,
+            'azure': False,
+            "rpm": 3600,
+            'kwargs': {},
+        },
+    ],
 }
 
 MODEL_SET = {
-    '3.5': {'gpt-3.5-turbo-0301', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo-16k-0613'},
-    '4': {'gpt-4', 'gpt-4-0314', 'gpt-4-0613'}
+    '3.5': {'gpt-3.5-turbo-0301', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo-16k-0613','gpt-3.5-turbo-1106'},
+    '4': {'gpt-4', 'gpt-4-0314', 'gpt-4-0613', 'gpt-4-1106-preview'},
 }
 
 
@@ -597,9 +573,7 @@ def build_messages(
     else:
         raise NotImplementedError(f"Unknown model name {model['name']}")
     system_prompt = """You are ChatGPT, a large language model trained by OpenAI, based on the {} architecture.
-    
-    Knowledge cutoff: 2021-09
-    
+        
     Current date: {}
     
     Follow the user's instructions carefully. Style your responses in Markdown. Return all the inline math symbols within single $ and standalone formula within double $. For example, $\pi$.

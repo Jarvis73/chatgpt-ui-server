@@ -1,7 +1,7 @@
 FROM python:3.10-slim as wsgi-server
 
 RUN  sed -i s@/deb.debian.org/@/mirrors.tuna.tsinghua.edu.cn/@g /etc/apt/sources.list.d/*
-
+#RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
 RUN apt update
 RUN apt install -y --no-install-recommends python3-dev default-libmysqlclient-dev build-essential libpq-dev dos2unix
 RUN rm -rf /var/lib/apt/lists/*
