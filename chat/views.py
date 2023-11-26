@@ -167,7 +167,7 @@ MODELS = {
         #     },
         # },
         {
-            'name': 'gpt-3.5-turbo',
+            'name': 'gpt-3.5-turbo-1106',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 4096,
             'max_prompt_tokens': 1596,
@@ -192,11 +192,11 @@ MODELS = {
         #     },
         # },
         {
-            'name': 'gpt-3.5-turbo-16k-0613',
+            'name': 'gpt-3.5-turbo-1106',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 16384,
-            'max_prompt_tokens': 2384,
-            'max_response_tokens': 14000,
+            'max_prompt_tokens': 12288,
+            'max_response_tokens': 4096,
             'azure': False,
             "rpm": 3600,
             'kwargs': {},
@@ -204,7 +204,7 @@ MODELS = {
     ],
     'gpt-3.5-turbo-oai': [
         {
-            'name': 'gpt-3.5-turbo-0613',
+            'name': 'gpt-3.5-turbo-1106',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 4096,
             'max_prompt_tokens': 1596,
@@ -241,8 +241,8 @@ MODELS = {
             'name': 'gpt-4',
             'key_name': 'gpt-4-azure',
             'max_tokens': 8192,
-            'max_prompt_tokens': 2192,
-            'max_response_tokens': 6000,
+            'max_prompt_tokens': 4096,
+            'max_response_tokens': 4096,
             'azure': True,
             "rpm": 1800,
             'kwargs': {
