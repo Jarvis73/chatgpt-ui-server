@@ -192,7 +192,7 @@ MODELS = {
         #     },
         # },
         {
-            'name': 'gpt-3.5-turbo',
+            'name': 'gpt-3.5-turbo-1106',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 16384,
             'max_prompt_tokens': 12288,
