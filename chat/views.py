@@ -166,17 +166,6 @@ MODELS = {
                 'deployment_id': 'gpt35'
             },
         },
-
-        # {
-        #     'name': 'gpt-3.5-turbo-1106',
-        #     'key_name': 'gpt-3.5-turbo',
-        #     'max_tokens': 4096,
-        #     'max_prompt_tokens': 1596,
-        #     'max_response_tokens': 2500,
-        #     'azure': False,
-        #     "rpm": 3600,
-        #     'kwargs': {},
-        # },
     ],
 
     'gpt-3.5-turbo-16k': [
@@ -192,28 +181,6 @@ MODELS = {
                 'deployment_id': 'gpt35'
             },
         },
-        # {
-        #     'name': 'gpt-3.5-turbo-16k',
-        #     'key_name': 'gpt-3.5-turbo-azure',
-        #     'max_tokens': 16000,
-        #     'max_prompt_tokens': 3000,
-        #     'max_response_tokens': 13000,
-        #     'azure': True,
-        #     "rpm": 3600,
-        #     'kwargs': {
-        #         'deployment_id': 'gpt35-16k'
-        #     },
-        # },
-        # {
-        #     'name': 'gpt-3.5-turbo-1106',
-        #     'key_name': 'gpt-3.5-turbo',
-        #     'max_tokens': 16384,
-        #     'max_prompt_tokens': 12288,
-        #     'max_response_tokens': 4096,
-        #     'azure': False,
-        #     "rpm": 3600,
-        #     'kwargs': {},
-        # },
     ],
     'gpt-3.5-turbo-oai': [
         {
@@ -240,16 +207,6 @@ MODELS = {
         }
     ],
     'gpt-4': [
-        # {
-        #     'name': 'gpt-4',
-        #     'key_name': 'gpt-4',
-        #     'max_tokens': 8192,
-        #     'max_prompt_tokens': 2192,
-        #     'max_response_tokens': 6000,
-        #     'azure': False,
-        #     "rpm": 200,
-        #     'kwargs': {},
-        # },
         {
             'name': 'gpt-4',
             'key_name': 'gpt-4-azure',
@@ -264,19 +221,9 @@ MODELS = {
         },
     ],
     'gpt-4-turbo': [
-        # {
-        #     'name': 'gpt-4-1106-preview',
-        #     'key_name': 'gpt-4-turbo',
-        #     'max_tokens': 32096,
-        #     'max_prompt_tokens': 28000,
-        #     'max_response_tokens': 4096,
-        #     'azure': False,
-        #     "rpm": 3600,
-        #     'kwargs': {},
-        # },
         {
             'name': 'gpt-4-1106-preview',
-            'key_name': 'gpt-4-azure',
+            'key_name': 'gpt-4-turbo-azure',
             'max_tokens': 32096,
             'max_prompt_tokens': 28000,
             'max_response_tokens': 4096,
@@ -777,7 +724,7 @@ def get_openai(model, openai_api_key, openai_api_base=None):
         if not openai_api_base:
             raise ValueError('Missing azure_api_base.')
         openai.api_base = openai_api_base
-        openai.api_version = "2023-09-01-preview"
+        openai.api_version = "2023-12-01-preview"
     else:
         openai.api_type = "open_ai"
         openai.api_key = openai_api_key
