@@ -230,7 +230,7 @@ MODELS = {
             'azure': True,
             "rpm": 1800,
             'kwargs': {
-                'deployment_id': 'gpt4-128k'
+                'deployment_id': 'gpt4-turbo'
             },
         },
     ],
