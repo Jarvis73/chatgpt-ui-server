@@ -23,5 +23,6 @@ urlpatterns = [
     path('api/stop_conversation/', stop_conversation, name='stop_conversation'),
     path('api/gen_title/', gen_title, name='gen_title'),
     path('api/account/', include('account.urls')),
+    path('api/stats/', include('stats.urls')),
     path('admin/', admin.site.urls),
 ]

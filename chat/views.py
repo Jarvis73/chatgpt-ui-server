@@ -274,7 +274,7 @@ def gen_title(request):
     openai_api_base = None
     if openai_api_key is None:
         model = random.choice(MODELS['gpt-3.5-turbo'])
-        api_key = get_api_key(request.user, model['key_name'], model['name'])
+        api_key = get_api_key(request.user, model['key_name'], 'gpt-3.5-turbo')
         if api_key:
             openai_api_key = api_key.key
             openai_api_base = api_key.api_base
@@ -314,7 +314,7 @@ def gen_title(request):
         title = completion_text.strip().replace('"', '')
 
         # increment the token count
-        increase_token_usage(request.user, openai_response['usage']['total_tokens'], api_key, model_name=model['name'])
+        increase_token_usage(request.user, openai_response['usage']['total_tokens'], api_key, model_name='gpt-3.5-turbo')
     except Exception as e:
         print(e)
         title = 'Untitled Conversation'
@@ -358,8 +358,8 @@ def conversation(request):
     api_key = None
     openai_api_base = None
     if openai_api_key is None:
-        model = get_current_model(model_name, request_max_response_tokens)
-        api_key = get_api_key(request.user, model['key_name'], model['name'])
+        model, model_name = get_current_model(model_name, request_max_response_tokens)
+        api_key = get_api_key(request.user, model['key_name'], model_name)
         if api_key:
             openai_api_key = api_key.key
             openai_api_base = api_key.api_base
@@ -373,7 +373,7 @@ def conversation(request):
     else:
         if "3.5" in model_name:
             model_name += "-oai"
-        model = get_current_model(model_name, request_max_response_tokens)
+        model, model_name = get_current_model(model_name, request_max_response_tokens)
     try:
         check_few_shot_messages(few_shot_messages)
         messages = build_messages(model, conversation_id, message, few_shot_messages, web_search_params, frugal_mode)
@@ -443,7 +443,7 @@ def conversation(request):
             messages=messages['messages'],
             tokens=messages['tokens'],
             api_key=api_key,
-            model_name=model['name'],
+            model_name=model_name,
             ai_response=False
         )
         yield sse_pack('userMessageId', {
@@ -475,7 +475,7 @@ def conversation(request):
             is_bot=True,
             tokens=ai_message_token,
             api_key=api_key,
-            model_name=model['name']
+            model_name=model_name,
         )
         yield sse_pack('done', {
             'messageId': ai_message_obj.id,
@@ -539,17 +539,26 @@ def increase_token_usage(user, tokens, api_key=None, model_name="gpt-3.5-turbo",
             equivalent_tokens = tokens * 2
         else:
             equivalent_tokens = tokens * 1.5
+        paid = True
     elif "gpt-4" in model_name:
         if ai_response:
             equivalent_tokens = tokens * 30
         else:
             equivalent_tokens = tokens * 15
+        paid = True
     else:
         if ai_response:
             equivalent_tokens = tokens
         else:
             equivalent_tokens = tokens * 0.75
-    token_usage.tokens += equivalent_tokens
+        paid = False
+
+    if paid:
+        token_usage.paid_tokens += equivalent_tokens
+        token_usage.paid_balance -= equivalent_tokens / 50_000
+    else:
+        token_usage.tokens += equivalent_tokens
+        token_usage.balance -= equivalent_tokens / 50_000
     token_usage.save()
 
     if api_key:
@@ -637,7 +646,7 @@ def get_current_model(model_name, request_max_response_tokens):
     if request_max_response_tokens is not None:
         model['max_response_tokens'] = int(request_max_response_tokens)
         model['max_prompt_tokens'] = model['max_tokens'] - model['max_response_tokens']
-    return model
+    return model, model_name
 
 
 def get_api_key_from_setting():
@@ -733,4 +742,10 @@ def get_openai(model, openai_api_key, openai_api_base=None):
         proxy = os.getenv('OPENAI_API_PROXY')
         if proxy:
             openai.api_base = proxy
+
+    if settings.DEBUG:
+        print('openai.api_type:', openai.api_type)
+        print('openai.api_key:', openai.api_key)
+        print('openai.api_base:', openai.api_base)
+        print('openai.api_version:', openai.api_version)
     return openai
