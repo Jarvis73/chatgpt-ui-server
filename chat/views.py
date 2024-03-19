@@ -216,7 +216,7 @@ MODELS = {
     ],
     'gpt-4-turbo': [
         {
-            'name': 'gpt-4-1106-preview',
+            'name': 'gpt-4-0125-preview',
             'key_name': 'gpt-4',
             'max_tokens': 32096,
             'max_prompt_tokens': 28000,
@@ -230,7 +230,7 @@ MODELS = {
 
 MODEL_SET = {
     '3.5': {'gpt-3.5-turbo-0301', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo-16k-0613','gpt-3.5-turbo-1106'},
-    '4': {'gpt-4', 'gpt-4-0314', 'gpt-4-0613', 'gpt-4-1106-preview'},
+    '4': {'gpt-4', 'gpt-4-0613', 'gpt-4-0125-preview'},
 }
 
 
@@ -672,8 +672,8 @@ def num_tokens_from_text(text, model="gpt-3.5-turbo-0301"):
         print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
         return num_tokens_from_text(text, model="gpt-3.5-turbo-0301")
     elif model == "gpt-4":
-        print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
-        return num_tokens_from_text(text, model="gpt-4-0314")
+        print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
+        return num_tokens_from_text(text, model="gpt-4-0613")
 
     if model in MODEL_SET['3.5'] or MODEL_SET['4']:
         return len(encoding.encode(text))
@@ -692,8 +692,8 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
         print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
         return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301")
     elif model == "gpt-4":
-        print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
-        return num_tokens_from_messages(messages, model="gpt-4-0314")
+        print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
+        return num_tokens_from_messages(messages, model="gpt-4-0613")
     elif model in MODEL_SET['3.5']:
         tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         tokens_per_name = -1  # if there's a name, the role is omitted
