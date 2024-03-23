@@ -446,6 +446,10 @@ def conversation(request):
             model_name=model_name,
             ai_response=False
         )
+        # (New user message) Update the conversation update date
+        conversation_obj.updated_at = message_obj.created_at
+        conversation_obj.save()
+
         yield sse_pack('userMessageId', {
             'userMessageId': message_obj.id,
         })
@@ -477,6 +481,10 @@ def conversation(request):
             api_key=api_key,
             model_name=model_name,
         )
+        # (New bot message) Update the conversation update date
+        conversation_obj.updated_at = message_obj.created_at
+        conversation_obj.save()
+
         yield sse_pack('done', {
             'messageId': ai_message_obj.id,
             'conversationId': conversation_obj.id
