@@ -6,6 +6,7 @@ import datetime
 import random
 import tiktoken
 import datetime
+import logging
 from provider.models import ApiKey
 from stats.models import TokenUsage, Profile
 from .models import Conversation, Message, Setting, Prompt, Mask
@@ -24,6 +25,7 @@ from .serializers import ConversationSerializer, MessageSerializer, PromptSerial
 from utils.search_prompt import compile_prompt
 from utils.duckduckgo_search import web_search, SearchRequest
 
+logger = logging.getLogger(__name__)
 
 class SettingViewSet(viewsets.ModelViewSet):
     serializer_class = SettingSerializer
@@ -206,8 +208,8 @@ MODELS = {
             'name': 'deepseek-chat',
             'key_name': 'deepseek-chat',
             'max_tokens': 32096,
-            'max_prompt_tokens': 23904,
-            'max_response_tokens': 8192,
+            'max_prompt_tokens': 28000,
+            'max_response_tokens': 4096,
             'azure': False,
             "rpm": 3600,
             'kwargs': {},
@@ -229,8 +231,8 @@ MODELS = {
 }
 
 MODEL_SET = {
-    '3.5': {'gpt-3.5-turbo-0301', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo-16k-0613','gpt-3.5-turbo-1106', 'gpt-3.5-turbo-0125'},
-    '4': {'gpt-4', 'gpt-4-0613', 'gpt-4-1106-preview', 'gpt-4-0125-preview', 'gpt-4-turbo-preview', 'gpt-4o'},
+    '3.5': {'gpt-3.5-turbo-0301', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo-16k-0613','gpt-3.5-turbo-1106', 'gpt-3.5-turbo-0125', 'gpt-3.5-turbo'},
+    '4': {'gpt-4', 'gpt-4-0613', 'gpt-4-1106-preview', 'gpt-4-0125-preview', 'gpt-4-turbo-preview', 'gpt-4o', 'gpt-4-turbo'},
     'deepseek': {'deepseek-chat', 'deepseek-coder'}
 }
 
@@ -352,7 +354,9 @@ def conversation(request):
     openai_api_base = None
     if openai_api_key is None:
         model = get_current_model(model_name, request_max_response_tokens)
+        print(model['name'])
         api_key = get_api_key(request.user, model['key_name'], model['name'])
+        print(api_key)
         if api_key:
             openai_api_key = api_key.key
             openai_api_base = api_key.api_base
@@ -668,10 +672,6 @@ def get_api_key(user, key_name='gpt-3.5-turbo', model_name="gpt-3.5-turbo"):
         # api_key = ApiKey.objects.filter(
         #     is_enabled=True, remark__iexact=key_name).order_by('token_used').first()
         api_key = random.choice(api_keys) if api_keys else None
-        # deepseek api key
-        if "deepseek" in model_name:
-            api_key = ApiKey.objects.filter(
-                is_enabled=True, remark__iexact="deepseek").order_by('token_used').first()
         # gpt-4 is only for vip
         if api_key is not None and "gpt-4" in model_name:
             user = Profile.objects.filter(user=user)
