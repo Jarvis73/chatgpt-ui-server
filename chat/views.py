@@ -672,12 +672,11 @@ def get_api_key(user, key_name='gpt-3.5-turbo', model_name="gpt-3.5-turbo"):
         if "deepseek" in model_name:
             api_key = ApiKey.objects.filter(
                 is_enabled=True, remark__iexact="deepseek").order_by('token_used').first()
-        # disable vip restrictions for vai group members
-        # # gpt-4 is only for vip
-        # if api_key is not None and ("16k" in model_name or "gpt-4" in model_name):
-        #     user = Profile.objects.filter(user=user)
-        #     if not user.exists() or not user.first().vip:
-        #         api_key = None
+        # gpt-4 is only for vip
+        if api_key is not None and "gpt-4" in model_name:
+            user = Profile.objects.filter(user=user)
+            if not user.exists() or not user.first().vip:
+                api_key = None
     except ApiKey.DoesNotExist as error:
         api_key = None
 
