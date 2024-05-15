@@ -155,20 +155,7 @@ class MaskViewSet(viewsets.ModelViewSet):
 MODELS = {
     'gpt-3.5-turbo': [
         {
-            'name': 'gpt-3.5-turbo-1106',
-            'key_name': 'gpt-3.5-turbo',
-            'max_tokens': 4096,
-            'max_prompt_tokens': 1596,
-            'max_response_tokens': 2500,
-            'azure': False,
-            "rpm": 3600,
-            'kwargs': {},
-        },
-    ],
-
-    'gpt-3.5-turbo-16k': [
-        {
-            'name': 'gpt-3.5-turbo-1106',
+            'name': 'gpt-3.5-turbo',
             'key_name': 'gpt-3.5-turbo',
             'max_tokens': 16384,
             'max_prompt_tokens': 12288,
@@ -177,30 +164,6 @@ MODELS = {
             "rpm": 3600,
             'kwargs': {},
         },
-    ],
-    'gpt-3.5-turbo-oai': [
-        {
-            'name': 'gpt-3.5-turbo-1106',
-            'key_name': 'gpt-3.5-turbo',
-            'max_tokens': 4096,
-            'max_prompt_tokens': 1596,
-            'max_response_tokens': 2500,
-            'azure': False,
-            "rpm": 3000,
-            'kwargs': {},
-        }
-    ],
-    'gpt-3.5-turbo-16k-oai': [
-        {
-            'name': 'gpt-3.5-turbo-1106',
-            'key_name': 'gpt-3.5-turbo',
-            'max_tokens': 16384,
-            'max_prompt_tokens': 12288,
-            'max_response_tokens': 4096,
-            'azure': False,
-            "rpm": 3000,
-            'kwargs': {},
-        }
     ],
     'gpt-4': [
         {
@@ -216,8 +179,8 @@ MODELS = {
     ],
     'gpt-4-turbo': [
         {
-            'name': 'gpt-4-0125-preview',
-            'key_name': 'gpt-4',
+            'name': 'gpt-4-turbo',
+            'key_name': 'gpt-4-turbo',
             'max_tokens': 32096,
             'max_prompt_tokens': 28000,
             'max_response_tokens': 4096,
@@ -226,11 +189,49 @@ MODELS = {
             'kwargs': {},
         },
     ],
+    'gpt-4o': [
+        {
+            'name': 'gpt-4o',
+            'key_name': 'gpt-4o',
+            'max_tokens': 32096,
+            'max_prompt_tokens': 28000,
+            'max_response_tokens': 4096,
+            'azure': False,
+            "rpm": 3600,
+            'kwargs': {},
+        },
+    ],
+    'deepseek-chat': [
+        {
+            'name': 'deepseek-chat',
+            'key_name': 'deepseek-chat',
+            'max_tokens': 32096,
+            'max_prompt_tokens': 23904,
+            'max_response_tokens': 8192,
+            'azure': False,
+            "rpm": 3600,
+            'kwargs': {},
+        }
+    ],
+    'deepseek-coder': [
+        {
+            'name': 'deepseek-coder',
+            'key_name': 'deepseek-coder',
+            'max_tokens': 16000,
+            'max_prompt_tokens': 11904,
+            'max_response_tokens': 4096,
+            'azure': False,
+            "rpm": 3600,
+            'kwargs': {},
+        }
+    ]
+    
 }
 
 MODEL_SET = {
-    '3.5': {'gpt-3.5-turbo-0301', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo-16k-0613','gpt-3.5-turbo-1106'},
-    '4': {'gpt-4', 'gpt-4-0613', 'gpt-4-0125-preview'},
+    '3.5': {'gpt-3.5-turbo-0301', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo-16k-0613','gpt-3.5-turbo-1106', 'gpt-3.5-turbo-0125'},
+    '4': {'gpt-4', 'gpt-4-0613', 'gpt-4-1106-preview', 'gpt-4-0125-preview', 'gpt-4-turbo-preview', 'gpt-4o'},
+    'deepseek': {'deepseek-chat', 'deepseek-coder'}
 }
 
 
@@ -278,7 +279,7 @@ def gen_title(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
     else:
-        model = random.choice(MODELS['gpt-3.5-turbo-oai'])
+        model = random.choice(MODELS['gpt-3.5-turbo'])
 
     if prompt is None:
         prompt = 'You are ChatGPT, a large language model trained by OpenAI. ' \
@@ -363,8 +364,8 @@ def conversation(request):
                 status=status.HTTP_403_FORBIDDEN
             )
     else:
-        if "3.5" in model_name:
-            model_name += "-oai"
+        # if "3.5" in model_name:
+        #     model_name += "-oai"
         model = get_current_model(model_name, request_max_response_tokens)
     try:
         check_few_shot_messages(few_shot_messages)
@@ -521,30 +522,46 @@ def create_message(user, conversation_id, message, is_bot=False, messages='', to
 def increase_token_usage(user, tokens, api_key=None, model_name="gpt-3.5-turbo", ai_response=True):
     token_usage, created = TokenUsage.objects.get_or_create(user=user)
     """
-    将gpt-3.5-turbo-4k的output作为标准，系数为1，价格为$0.002/1k，则各个模型的token系数如下：
-    gpt-3.5-turbo-4k, input: 0.75
-    gpt-3.5-turbo-4k, output: 1
-    gpt-3.5-turbo-16k, input: 1.5
-    gpt-3.5-turbo-16k, output: 2
-    gpt-4-8k, input: 15
-    gpt-4-8k, output: 30
-    
+    将gpt-3.5-turbo的output作为标准, 系数为1, 价格为$0.0015/1k, 则各个模型的token系数如下:
+    gpt-3.5-turbo, input: 0.33
+    gpt-3.5-turbo, output: 1
+    gpt-4-turbo, input: 6.67
+    gpt-4-turbo, output: 20
+    gpt-4, input: 20
+    gpt-4, output: 40
+    gpt-4o, input: 3.33
+    gpt-4o, output: 10
+    deepseek-chat, input: 0.093
+    deepseek-chat, output: 0.187
+    deepseek-coder, input: 0.093
+    deepseek-coder, output: 0.187
     """
-    if "gpt-3.5-turbo-16k" in model_name:
+    if "gpt-4-turbo" in model_name:
         if ai_response:
-            equivalent_tokens = tokens * 2
+            equivalent_tokens = tokens * 20
         else:
-            equivalent_tokens = tokens * 1.5
+            equivalent_tokens = tokens * 6.67
+    elif "gpt-4o" in model_name:
+        if ai_response:
+            equivalent_tokens = tokens * 10
+        else:
+            equivalent_tokens = tokens * 3.33
     elif "gpt-4" in model_name:
         if ai_response:
-            equivalent_tokens = tokens * 30
+            equivalent_tokens = tokens * 40
         else:
-            equivalent_tokens = tokens * 15
-    else:
+            equivalent_tokens = tokens * 20
+    elif "gpt-3.5-turbo" in model_name:
         if ai_response:
             equivalent_tokens = tokens
         else:
-            equivalent_tokens = tokens * 0.75
+            equivalent_tokens = tokens * 0.33
+    else:
+        # deepseek
+        if ai_response:
+            equivalent_tokens = tokens * 0.187
+        else:
+            equivalent_tokens = tokens * 0.093
     token_usage.tokens += equivalent_tokens
     token_usage.save()
 
@@ -570,6 +587,8 @@ def build_messages(
         current_architecture = "GPT-3.5"
     elif "4" in model['name']:
         current_architecture = "GPT-4"
+    elif "deepseek" in model['name']:
+        current_architecture = "DeepSeek"
     else:
         raise NotImplementedError(f"Unknown model name {model['name']}")
     system_prompt = """You are ChatGPT, a large language model trained by OpenAI, based on the {} architecture.
@@ -649,6 +668,10 @@ def get_api_key(user, key_name='gpt-3.5-turbo', model_name="gpt-3.5-turbo"):
         # api_key = ApiKey.objects.filter(
         #     is_enabled=True, remark__iexact=key_name).order_by('token_used').first()
         api_key = random.choice(api_keys) if api_keys else None
+        # deepseek api key
+        if "deepseek" in model_name:
+            api_key = ApiKey.objects.filter(
+                is_enabled=True, remark__iexact="deepseek").order_by('token_used').first()
         # disable vip restrictions for vai group members
         # # gpt-4 is only for vip
         # if api_key is not None and ("16k" in model_name or "gpt-4" in model_name):
@@ -675,7 +698,7 @@ def num_tokens_from_text(text, model="gpt-3.5-turbo-0301"):
         print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
         return num_tokens_from_text(text, model="gpt-4-0613")
 
-    if model in MODEL_SET['3.5'] or MODEL_SET['4']:
+    if model in MODEL_SET['3.5'] or MODEL_SET['4'] or MODEL_SET['deepseek']:
         return len(encoding.encode(text))
 
     raise NotImplementedError(f"""num_tokens_from_text() is not implemented for model {model}.""")
@@ -697,7 +720,7 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
     elif model in MODEL_SET['3.5']:
         tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         tokens_per_name = -1  # if there's a name, the role is omitted
-    elif model in MODEL_SET['4']:
+    elif model in MODEL_SET['4'] or model in MODEL_SET['deepseek']:
         tokens_per_message = 3
         tokens_per_name = 1
     else:
@@ -722,6 +745,11 @@ def get_openai(model, openai_api_key, openai_api_base=None):
             raise ValueError('Missing azure_api_base.')
         openai.api_base = openai_api_base
         openai.api_version = "2023-09-01-preview"
+    elif "deepseek" in model['name']:
+        openai.api_type = "open_ai"  # actually deepseek
+        openai.api_key = openai_api_key
+        openai.api_base = 'https://api.deepseek.com/v1'
+        openai.api_version = None
     else:
         openai.api_type = "open_ai"
         openai.api_key = openai_api_key
